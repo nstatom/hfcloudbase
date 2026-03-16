@@ -194,7 +194,13 @@ loadCloudPlot(station, hours)
 
 async function initMap(){
 
-const metars = await getAllMETARs();
+const metars = await getAllMETARs() || [];
+
+if(metars.length === 0){
+document.getElementById("messages").innerHTML =
+"<span class='error'>No METAR data returned.</span>";
+return;
+}
 
 let lats = [];
 let lons = [];
