@@ -170,16 +170,15 @@ let icao = document.getElementById("icaoInput").value.toUpperCase()
 
 let hours = validateInputs()
 
-let station = stations.find(s => s.icao === icao)
-
-if(!station){
-document.getElementById("messages").innerHTML =
-"<span class='error'>Station not found or no ceilometer data.</span>"
-return
-}
+let station = {
+icao:icao,
+lat:32.733,
+lon:-117.189,
+elev:13
+};
 
 document.getElementById("metadata").innerHTML =
-Elevation: ${station.elev} ft |
+'Elevation: ${station.elev} ft |
 Latitude: ${station.lat} |
 Longitude: ${station.lon}`
 
@@ -233,6 +232,7 @@ lat:lats,
 lon:lons,
 
 text:texts,
+hoverinfo:"text",
 
 marker:{
 size:7,
