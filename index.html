@@ -2,11 +2,9 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Airport Cloud Viewer</title>
+<title>METAR API Test</title>
 
 <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body{
@@ -14,34 +12,28 @@ font-family:Arial;
 margin:20px;
 }
 
-#controls{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
-margin-bottom:15px;
-}
-
-input{
-padding:6px;
-font-size:16px;
-}
-
 #plot{
-height:500px;
+height:450px;
 border:2px solid #444;
+margin-top:10px;
 }
 
-.error{color:red;}
-.warning{color:orange;}
+pre{
+background:#eee;
+padding:10px;
+overflow:auto;
+height:200px;
+}
 
+.error{
+color:red;
+}
 </style>
 </head>
 
 <body>
 
-<h2>Airport Cloud Base Viewer</h2>
-
-<div id="controls">
+<h2>METAR API Debug Tool</h2>
 
 <label>ICAO:</label>
 <input id="icaoInput" value="KSAN">
@@ -49,96 +41,74 @@ border:2px solid #444;
 <label>Hours:</label>
 <input id="hoursInput" value="24" type="number">
 
-<button onclick="loadData()">Load</button>
+<button onclick="runTest()">Run Test</button>
 
-</div>
+<div id="status"></div>
 
-<div id="messages"></div>
+<h3>Raw API Response</h3>
+<pre id="raw"></pre>
 
 <div id="plot"></div>
 
 <script>
 
-const MAX_HOURS = 168;
+async function runTest(){
 
-async function loadData(){
-
-let icao =
+const icao =
 document.getElementById("icaoInput").value.toUpperCase();
 
-let hours =
-parseInt(document.getElementById("hoursInput").value);
+const hours =
+document.getElementById("hoursInput").value;
 
-if(hours > MAX_HOURS){
+const url =
+`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json&hours=${hours}`;
 
-hours = MAX_HOURS;
-
-document.getElementById("hoursInput").value = MAX_HOURS;
-
-document.getElementById("messages").innerHTML =
-"<span class='warning'>Max hours is 168</span>";
-
-}
+document.getElementById("status").innerHTML =
+"Downloading: " + url;
 
 try{
 
-const response =
-await fetch("https://aviationweather.gov/data/cache/metars.cache.csv");
+const response = await fetch(url);
 
-const text =
-await response.text();
+document.getElementById("status").innerHTML +=
+"<br>Status: " + response.status;
 
-const rows =
-text.split("\n");
+const data = await response.json();
+
+document.getElementById("raw").textContent =
+JSON.stringify(data,null,2);
+
+plotTest(data);
+
+}
+catch(err){
+
+document.getElementById("status").innerHTML =
+"<span class='error'>Fetch failed</span>";
+
+console.error(err);
+
+}
+
+}
+
+function plotTest(data){
 
 let times=[];
 let heights=[];
-let colors=[];
 
-const now = Date.now();
-const cutoff = now - hours*3600000;
+data.forEach(m => {
 
-rows.forEach(row => {
+if(!m.clouds) return;
 
-if(!row.includes(icao)) return;
+m.clouds.forEach(layer => {
 
-const cols = row.split(",");
-
-const raw = cols[0];
-const time = new Date(cols[2]);
-
-if(time.getTime() < cutoff) return;
-
-const matches =
-raw.match(/(FEW|SCT|BKN|OVC)(\d{3})/g);
-
-if(!matches) return;
-
-matches.forEach(layer => {
-
-const cover = layer.substring(0,3);
-const height = parseInt(layer.substring(3))*100;
-
-times.push(time);
-heights.push(height);
-
-if(cover==="FEW") colors.push("green");
-else if(cover==="SCT") colors.push("blue");
-else if(cover==="BKN") colors.push("orange");
-else if(cover==="OVC") colors.push("red");
+times.push(new Date(m.obsTime));
+heights.push(layer.base);
 
 });
 
 });
-
-if(times.length===0){
-
-document.getElementById("messages").innerHTML =
-"<span class='error'>No cloud data found</span>";
-
-return;
-
-}
 
 let trace = {
 
@@ -148,41 +118,19 @@ y:heights,
 mode:"markers",
 
 marker:{
-size:12,
-color:colors
+size:12
 }
 
 };
 
-let layout = {
-
-title:`${icao} Cloud Base Height`,
-
-xaxis:{
-title:"Time"
-},
-
-yaxis:{
-title:"Cloud Base (ft AGL)"
-}
-
-};
-
-Plotly.newPlot("plot",[trace],layout);
-
-}
-catch(err){
-
-console.error(err);
-
-document.getElementById("messages").innerHTML =
-"<span class='error'>Download failed</span>";
+Plotly.newPlot("plot",[trace],{
+xaxis:{title:"Time"},
+yaxis:{title:"Cloud Base (ft)"}
+});
 
 }
 
-}
-
-loadData();
+runTest();
 
 </script>
 
