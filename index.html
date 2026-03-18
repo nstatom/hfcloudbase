@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>METAR Debug Viewer</title>
+<title>Airport Ceilometer Data</title>
 
 <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
 
@@ -16,7 +16,7 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 
 <body>
 
-<h2>METAR API Debug Tool</h2>
+<h2>Airport Ceilometer Data v1.01</h2>
 
 <label>ICAO:</label>
 <input id="icao" value="KSAN">
@@ -26,9 +26,11 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 
 <button onclick="run()">Run Test</button>
 
+<h3>Aviation Weather METAR Request</h3>
+
 <div id="status"></div>
 
-<h3>Raw Response</h3>
+<h3>Aviation Weather METAR Response</h3>
 <pre id="raw"></pre>
 
 <div id="plot"></div>
@@ -48,7 +50,7 @@ const url =
 `https://api.allorigins.win/raw?url=${encodeURIComponent(api)}`;
 
 document.getElementById("status").innerHTML =
-"Request:<br>"+url;
+url;
 
 try{
 
@@ -98,8 +100,8 @@ x:x,
 y:y,
 mode:"markers"
 }],{
-xaxis:{title:"Time"},
-yaxis:{title:"Cloud Base ft"}
+xaxis:{title:"Time [UTC]"},
+yaxis:{title:"Cloud Base AGL [ft]"}
 });
 
 }
