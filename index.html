@@ -17,7 +17,7 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 
 <body>
 
-<h2>Cloudbase v1.06</h2>
+<h2>Cloudbase v1.07</h2>
 
 <label>Airport ICAO Code:</label>
 <input id="icao" value="KSAN">
@@ -28,15 +28,19 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <button onclick="run()">Run Update</button>
 
 <br>
-<h3>Airport Cloud Ceiling Time Series Plot</h3>
+<h3>METAR Low Cloud Evolution (<3000ft)</h3>
+<div id="plot3k"></div>
+
+<br>
+<h3>METAR Full Cloud Evolution</h3>
 <div id="plot"></div>
 
 <br>
-<h3>Aviation Weather Request</h3>
+<h3>Aviation Weather METAR Request</h3>
 <div id="status"></div>
 
 <br>
-<h3>JSON Response</h3>
+<h3>Aviation Weather METAR Response</h3>
 <pre id="raw"></pre>
 
 <b>Data Disclaimer</b>
@@ -183,7 +187,7 @@ Plotly.newPlot("plot", plotTraces, {
 
 }
 
-// ---------------- PLOT Full Range ----------------
+// ---------------- PLOT 0-3000ft ----------------
 
 function plot3k(data){
 
@@ -255,7 +259,7 @@ Plotly.newPlot("plot", plotTraces, {
 
   yaxis:{
     title:"Cloud Base AGL [ft]",
-    range:[-1000, 3000]
+    range:[-500, 3000]
   }
 
 }, {displaylogo:false});
