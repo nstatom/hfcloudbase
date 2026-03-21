@@ -17,9 +17,9 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 
 <body>
 
-<h1 style="display:flex; align-items:center; gap:5px;">
-  <img src="CloudbaseLogo.png" style="height:50px;">
-  Cloudbase v1.08
+<h1 style="display:flex; align-items:center; gap:7px;">
+  <img src="CloudbaseLogo.png" style="height:40px;">
+  Cloudbase v1.07
 </h1>
 
 <label>Airport ICAO Code:</label>
@@ -28,14 +28,15 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <label>Prior Hours to Display:</label>
 <input id="hours" value="24">
 
-<button onclick="run()">Update</button>
+<button onclick="run()">Run Update</button>
 
 <br>
-<h3>${icao} METAR Low Cloud Evolution (<3000ft)</h3>
+<h3 id="title3k"></h3>
 <div id="plot3k"></div>
 
+
 <br>
-<h3>${icao} METAR Full Cloud Evolution</h3>
+<h3 id="titleFull"></h3>
 <div id="plot"></div>
 
 <br>
@@ -64,6 +65,12 @@ const WORKER_URL = "https://noaa-fetch.nstatom.workers.dev"
 
 async function run(){
 
+document.getElementById("title3k").innerText =
+  `${icao} METAR Low Cloud Evolution (<3000 ft)`;
+
+document.getElementById("titleFull").innerText =
+  `${icao} METAR Full Cloud Evolution`;
+  
 let icao = document.getElementById("icao").value.toUpperCase();
 let hours = parseInt(document.getElementById("hours").value);
 
@@ -81,6 +88,10 @@ const url = `${WORKER_URL}?station=${icao}&hours=${hours}`;
 
 document.getElementById("status").innerHTML = url;
 
+document.getElementById("icao").addEventListener("keypress", e => {
+  if(e.key === "Enter") run();
+});
+
 try{
 
 const r = await fetch(url);
@@ -95,10 +106,10 @@ document.getElementById("raw").textContent =
 JSON.stringify(json, null, 2);
 
 // Worker returns { data: [...] }
-plot3k(json.data);
+plot3k(json.data, icao);
 
 // Worker returns { data: [...] }
-plot(json.data);
+plot(json.data, icao);
 
 }catch(err){
 
@@ -113,7 +124,7 @@ console.error(err);
 
 // ---------------- PLOT Full Range ----------------
 
-function plot(data){
+function plot(data, icao){
 
 let traces = {
   SKC: {x:[], y:[], mode:"markers", name:"SKC/NSC",
@@ -140,7 +151,7 @@ data.forEach(m => {
 
   // --- SKC / NSC (no clouds) ---
   if(!m.clouds || m.clouds.length === 0){
-    traces.SKC.x.push(t*1000);
+    traces.SKC.x.push(t);
     traces.SKC.y.push(0);
     return;
   }
@@ -177,7 +188,7 @@ Plotly.newPlot("plot", plotTraces, {
 
   margin:{l:50,r:20,t:20,b:40},
 
-  title: `${station.icao} Cloud Evolution`,
+  title: `${icao} Cloud Evolution`,
   
   xaxis:{
     title:"Time [UTC]"
@@ -194,7 +205,7 @@ Plotly.newPlot("plot", plotTraces, {
 
 // ---------------- PLOT 0-3000ft ----------------
 
-function plot3k(data){
+function plot3k(data, icao){
 
 let traces = {
   SKC: {x:[], y:[], mode:"markers", name:"SKC/NSC",
@@ -221,7 +232,7 @@ data.forEach(m => {
 
   // --- SKC / NSC (no clouds) ---
   if(!m.clouds || m.clouds.length === 0){
-    traces.SKC.x.push(t*1000);
+    traces.SKC.x.push(t);
     traces.SKC.y.push(0);
     return;
   }
@@ -254,9 +265,11 @@ let plotTraces = Object.values(traces);
 // remove empty traces (clean legend)
 plotTraces = plotTraces.filter(tr => tr.x.length > 0);
 
-Plotly.newPlot("plot", plotTraces, {
+Plotly.newPlot("plot3k", plotTraces, {
 
   margin:{l:50,r:20,t:20,b:40},
+
+  title: `${icao} Cloud Evolution`,
 
   xaxis:{
     title:"Time [UTC]"
