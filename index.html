@@ -107,7 +107,7 @@ m.clouds.forEach(c => {
 if(!c.base) return;
 
 // Worker uses ISO time string
-x.push(new Date(m.time));
+x.push(new Date(m.time * 1000));
 y.push(c.base);
 
 });
