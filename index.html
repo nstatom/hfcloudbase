@@ -47,6 +47,7 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <h3>Aviation Weather METAR Response</h3>
 <pre id="raw"></pre>
 
+<br>
 <b>Data Disclaimer</b>
 
 <p>
@@ -69,10 +70,10 @@ let icao = document.getElementById("icao").value.toUpperCase();
 let hours = parseInt(document.getElementById("hours").value);
 
 document.getElementById("title3k").innerText =
-  `${icao} METAR ${hours} Hour Low Cloud Evolution (<3000 ft)`;
+  `${icao} ${hours} Hour Low Cloud Evolution (< 3000 ft)`;
 
 document.getElementById("titleFull").innerText =
-  `${icao} METAR ${hours} Hour Full Cloud Evolution`;
+  `${icao} ${hours} Hour Full Cloud Evolution`;
 
 // enforce max
 if(hours > 168){
@@ -150,9 +151,7 @@ let maxHeight = -1000;
 
 data.forEach(m => {
 
-let t = new Date(
-  m.time < 1e12 ? m.time * 1000 : m.time
-);
+let t = new Date(m.time * 1000);
 
   // --- SKC / NSC (no clouds) ---
   if(!m.clouds || m.clouds.length === 0){
