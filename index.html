@@ -44,10 +44,6 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <div id="airportInfo" style="margin-top:10px;"></div>
 
 <br>
-<h3 id="titleIFR"></h3>
-<div id="plotIFR"></div>
-
-<br>
 <h3 id="title3k"></h3>
 <div id="plot3k"></div>
 
@@ -207,11 +203,6 @@ plot3k(json.data, icao);
 // Worker returns { data: [...] }
 plot(json.data, icao);
 
-document.getElementById("titleIFR").innerText =
-  `${icao} Past ${hours} Hour Flight Category Timeline`;
-
-plotIFR(json.data, "plotIFR");
-
 }catch(err){
 
 document.getElementById("status").innerHTML =
@@ -265,7 +256,7 @@ let t = new Date(m.time * 1000);
 // --- IFR category (plot at fixed height) ---
 if(m.ifr && traces[m.ifr]){
   traces[m.ifr].x.push(t);
-  traces[m.ifr].y.push(-3000);
+  traces[m.ifr].y.push(-2000);
 }
 
   // --- SKC / NSC (no clouds) ---
@@ -313,7 +304,7 @@ Plotly.newPlot("plot", plotTraces, {
 
   yaxis:{
     title:"Cloud Base AGL [ft]",
-    range:[-4000, 31000]
+    range:[-3000, 31000]
   }
 
 }, {displaylogo:false});
@@ -362,7 +353,7 @@ data.forEach(m => {
 // --- IFR category (plot at fixed height) ---
 if(m.ifr && traces[m.ifr]){
   traces[m.ifr].x.push(t);
-  traces[m.ifr].y.push(-300);
+  traces[m.ifr].y.push(-200);
 }
 
   // --- SKC / NSC (no clouds) ---
@@ -407,72 +398,11 @@ Plotly.newPlot("plot3k", plotTraces, {
 
   yaxis:{
     title:"Cloud Base AGL [ft]",
-    range:[-400, 3100]
+    range:[-300, 3100]
   }
 
 }, {displaylogo:false});
 
-}
-
-
-//Plot IFR
-function plotIFR(data, divId){
-
-  const colors = {
-    LIFR: "purple",
-    IFR: "red",
-    MVFR: "blue",
-    VFR: "green"
-  };
-
-  let shapes = [];
-
-  for(let i = 0; i < data.length; i++){
-
-    let m = data[i];
-
-    if(!m.ifr) continue; // skip if missing
-
-    let t0 = new Date(m.time * 1000);
-
-    let t1;
-    if(i < data.length - 1){
-      t1 = new Date(data[i+1].time * 1000);
-    } else {
-      t1 = new Date(m.time * 1000 + 3600 * 1000); // extend 1 hour for METAR
-    }
-
-    let cat = m.ifr;
-
-    shapes.push({
-      type: "rect",
-      xref: "x",
-      yref: "paper",
-      x0: t0,
-      x1: t1,
-      y0: 0,
-      y1: 1,
-      fillcolor: colors[cat] || "gray",
-      line: {width: 0}
-    });
-  }
-
-Plotly.newPlot(divId, [{
-	x: data.map(m => new Date(m.time * 1000)),
-	y: data.map(() => 1),
-	mode: "lines",
-	line: {width: 0}
-}], {
-
-    margin:{l:50,r:20,t:20,b:40},
-
-    xaxis:{ title:"Local Time" },
-
-    yaxis:{ visible:false },
-
-    shapes: shapes
-
-  }, {displaylogo:false});
 }
 
 
