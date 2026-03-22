@@ -55,6 +55,14 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <pre id="raw"></pre>
 
 <br>
+<h3>Mesonet HFMETAR Data Request</h3>
+<div id="status2"></div>
+
+<br>
+<h3>Mesonet HFMETAR Data Response</h3>
+<pre id="raw2"></pre>
+
+<br>
 <b>Data Disclaimer</b>
 
 <p>
@@ -96,17 +104,29 @@ if(hours > 168){
 
 const mesoUrl = `${MESONET_URL}?station=${icao}&hours=${hours}`;
 
+document.getElementById("status2").innerHTML = mesoUrl;
+
 try {
 
   const r2 = await fetch(mesoUrl);
 
-  document.getElementById("status").innerHTML +=
-    "<br>Mesonet Status: " + r2.status;
+  document.getElementById("status2").innerHTML +=
+    "<br>Status: " + r2.status;
 
   const json2 = await r2.json();
 
-  // debug output
+  // show raw response
+  document.getElementById("raw2").textContent =
+    JSON.stringify(json2, null, 2);
+
   console.log("Mesonet:", json2);
+
+  // validate
+  if(!json2.data || !Array.isArray(json2.data)){
+    document.getElementById("status2").innerHTML +=
+      "<br><span class='error'>Invalid Mesonet data</span>";
+    return;
+  }
 
   // title
   document.getElementById("titleMesonet").innerText =
@@ -116,10 +136,11 @@ try {
   plotMesonet(json2.data, icao);
 
 } catch(err){
-  document.getElementById("status").innerHTML +=
+  document.getElementById("status2").innerHTML +=
     "<br><span class='error'>Mesonet download failed</span>";
   console.error(err);
 }
+
 
 // Worker URL
 const url = `${WORKER_URL}?station=${icao}&hours=${hours}`;
@@ -312,9 +333,36 @@ data.forEach(m => {
 
 });
 
+// convert traces object → array
+let plotTraces = Object.values(traces);
+
+// remove empty traces (clean legend)
+plotTraces = plotTraces.filter(tr => tr.x.length > 0);
+
+Plotly.newPlot("plot3k", plotTraces, {
+
+  margin:{l:50,r:20,t:20,b:40},
+
+  xaxis:{
+    title:"Local Time"
+  },
+
+  yaxis:{
+    title:"Cloud Base AGL [ft]",
+    range:[-100, 3100]
+  }
+
+}, {displaylogo:false});
+
+}
 
 //Plot Mesonet
 function plotMesonet(data, icao){
+
+	if(!data || data.length === 0){
+		console.log("Mesonet data empty");
+		return;
+	}
 
   let traces = {
     SKC: {x:[], y:[], mode:"markers", name:"SKC/NSC",
@@ -374,28 +422,7 @@ function plotMesonet(data, icao){
 }
 
 
-// convert traces object → array
-let plotTraces = Object.values(traces);
 
-// remove empty traces (clean legend)
-plotTraces = plotTraces.filter(tr => tr.x.length > 0);
-
-Plotly.newPlot("plot3k", plotTraces, {
-
-  margin:{l:50,r:20,t:20,b:40},
-
-  xaxis:{
-    title:"Local Time"
-  },
-
-  yaxis:{
-    title:"Cloud Base AGL [ft]",
-    range:[-100, 3100]
-  }
-
-}, {displaylogo:false});
-
-}
 
 // ---------------- INIT ----------------
 
