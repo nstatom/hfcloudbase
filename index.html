@@ -44,22 +44,22 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <div id="plot"></div>
 
 <br>
-<h3>Aviation Weather METAR Request</h3>
+<h3>Aviation Weather METAR Data Request</h3>
 <div id="status"></div>
 
 <br>
-<h3>Aviation Weather METAR Response</h3>
+<h3>Aviation Weather METAR Data Response</h3>
 <pre id="raw"></pre>
 
 <br>
 <b>Data Disclaimer</b>
 
 <p>
-Hourly cloud data (larger icons) is based on airport METAR readings from the NOAA Aviation Weather API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations.
+Hourly cloud data (larger icons) is based on airport METAR readings that are extracted from the NOAA Aviation Weather API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations.
 </p>
 
 <p>
-High rate cloud data (smaller icons) is from the Iowa State Mesonet API. The resulting ceilometer observations are more prone to overall cloud status mischaracterization in patchy cloud conditions than the METAR data since each observation is the result of a 5 minute collection of point measurements with normal averaging.
+High rate cloud data (smaller icons) derives from the same METAR stations but is extracted from the Iowa State Mesonet API. The resulting ceilometer observations are more prone to overall cloud status mischaracterization in patchy cloud conditions than the METAR data since each observation is the result of a 5 minute collection of point measurements with normal averaging.
 </p>
 
 <script>
@@ -120,7 +120,7 @@ if(json.station){   // adjust if your structure is slightly different
 
 		document.getElementById("airportInfo").innerHTML = `
 		<b>${icao} Airport Information:</b>
-		Latitude = ${lat}, Longitude = ${lon}, Elevation = ${alt} ft. Note: Plotted cloud heights below are in reference to airport <u>ground</u> elevation.
+		Latitude = ${lat}, Longitude = ${lon}, Elevation = ${alt} ft. Note: Plotted cloud heights below are in reference to airport <u>ground</u> elevation and rounded to nearest 100 ft. Add airport elevation offset to get MSL heights.
 		<br>
 		`;
 	}
@@ -219,7 +219,7 @@ Plotly.newPlot("plot", plotTraces, {
 
   yaxis:{
     title:"Cloud Base AGL [ft]",
-    range:[-1000, 26000]
+    range:[-1000, 31000]
   }
 
 }, {displaylogo:false});
