@@ -42,20 +42,7 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 
 <br>
 <br>
-<b>Cloud Height Plot Information</b>
-
-<p>
-Currently the plots can contain up to 168 hours (1 week) of METAR data. Plotted cloud heights are in reference to the airport ground elevation and rounded to the nearest 100 ft. Add the airport elevation that is listed above to get cloud MSL heights. Clear sky conditions (yellow circles) are plotted at 0 ft elevation and the flight rules category is plotted at a negative elevation arbitrarily for data tracking convenience. Note that lower level cloudy conditions (especially overcast) can obscure higher elevation clouds from being detected by the airport's ceilometer.
-</p>
-<p>
-Hourly cloud data (larger icons) are based on standard airport METAR readings that are fetched using the NOAA Aviation Weather API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations. High rate cloud data (smaller icons) are generated from the same METAR stations but are fetched using the Iowa State Mesonet API. The resulting ceilometer observations may be more prone to overall cloud status mischaracterization in patchy cloud conditions than the hourly METAR data since each HF observation is the result of only a 5 minute collection of vertical point measurements with normal averaging. 
-</p>
-
-<br>
 <div id="airportInfo" style="margin-top:10px;"></div>
-
-<br>
-<div id="plotInfo" style="margin-top:10px;"></div>
 
 <br>
 <h3 id="title3k"></h3>
@@ -68,6 +55,17 @@ Hourly cloud data (larger icons) are based on standard airport METAR readings th
 <br>
 <h3 id="titleMesonet"></h3>
 <div id="plotMesonet" style="height:450px; border:2px solid #444; margin-top:10px;"></div>
+
+<br>
+<br>
+<b>Cloud Height Plot Information</b>
+
+<p>
+Currently the plots can contain up to 168 hours (1 week) of METAR data. Plotted cloud heights are in reference to the airport ground elevation and rounded to the nearest 100 ft. Add the airport elevation that is listed above to get cloud MSL heights. Clear sky conditions (yellow circles) are plotted at 0 ft elevation and the flight rules category is plotted at a negative elevation arbitrarily for data tracking convenience. Note that lower level cloudy conditions (especially overcast) can obscure higher elevation clouds from being detected by the airport's ceilometer.
+</p>
+<p>
+Hourly cloud data (larger icons) are based on standard airport METAR readings that are fetched using the NOAA Aviation Weather API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations. High frequency (HF) cloud data (smaller icons) are generated from the same METAR stations but are fetched using the Iowa State Mesonet API. The resulting HF ceilometer observations may be more prone to overall cloud status mischaracterization in patchy cloud conditions than the hourly METAR data since each HF observation is the result of only a 5 minute collection of vertical point measurements with normal averaging. 
+</p>
 
 <br>
 <h3>Aviation Weather METAR Data Request</h3>
