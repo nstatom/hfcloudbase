@@ -102,6 +102,9 @@ async function run(){
 let icao = document.getElementById("icao").value.toUpperCase();
 let hours = parseInt(document.getElementById("hours").value);
 
+localStorage.setItem("icao", icao);
+localStorage.setItem("hours", hours);
+
 document.getElementById("title3k").innerText =
   `${icao} ${hours}hr Low Cloud Height (=< 3000 ft) and Flight Rules Category`;
 
@@ -487,6 +490,18 @@ function plotMesonet(data, icao){
 }
 
 // ---------------- INIT ----------------
+
+// Load saved values
+const savedIcao = localStorage.getItem("icao");
+const savedHours = localStorage.getItem("hours");
+
+if(savedIcao){
+  document.getElementById("icao").value = savedIcao;
+}
+
+if(savedHours){
+  document.getElementById("hours").value = savedHours;
+}
 
 run();
 
