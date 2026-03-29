@@ -99,6 +99,7 @@ const MESONET_URL = "https://mesonet-fetch.nstatom.workers.dev";
 
 async function run(){
   
+let sizes = getMarkerSizes(hours);
 let icao = document.getElementById("icao").value.toUpperCase();
 let hours = parseInt(document.getElementById("hours").value);
 
@@ -150,10 +151,10 @@ try {
 
   // title
   document.getElementById("titleMesonet").innerText =
-    `${icao} ${hours}hr HR Low Cloud Height (<= 3000 ft)`;
+    `${icao} ${hours}hr HF Low Cloud Height (<= 3000 ft)`;
 
   // plot
-  plotMesonet(json2.data, icao);
+  plotMesonet(json2.data, icao, sizes.small);
 
 } catch(err){
   document.getElementById("status2").innerHTML +=
@@ -205,10 +206,10 @@ document.getElementById("raw").textContent =
 JSON.stringify(json, null, 2);
 
 // Worker returns { data: [...] }
-plot3k(json.data, icao);
+plot3k(json.data, icao, sizes.big);
 
 // Worker returns { data: [...] }
-plot(json.data, icao);
+plot(json.data, icao, sizes.big);
 
 }catch(err){
 
@@ -221,40 +222,49 @@ console.error(err);
 
 }
 
+// ------------Marker size lookup table--------------
+function getMarkerSizes(hours){
+  if(hours > 71) return {big:14, small:7};
+  else if(hours > 23) return {big:15, small:8};
+  else if(hours > 11) return {big:16, small:9};
+  else if(hours > 5) return {big:17, small:10};
+  else return {big:18, small:11};
+}
+
 // ---------------- PLOT Full Range ----------------
 
-function plot(data, icao){
+function plot(data, icao, markerSize){
 
 let traces = {
   SKC: {x:[], y:[], mode:"markers", name:"SKC",
-        marker:{color:"yellow", size:16, symbol:"circle"}},
+        marker:{color:"yellow", size:markerSize, symbol:"circle"}},
 
   FEW: {x:[], y:[], mode:"markers", name:"FEW",
-        marker:{color:"green", size:16, symbol:"circle"}},
+        marker:{color:"green", size:markerSize, symbol:"circle"}},
 
   SCT: {x:[], y:[], mode:"markers", name:"SCT",
-        marker:{color:"blue", size:16, symbol:"circle"}},
+        marker:{color:"blue", size:markerSize, symbol:"circle"}},
 
   BKN: {x:[], y:[], mode:"markers", name:"BKN",
-        marker:{color:"red", size:16, symbol:"circle"}},
+        marker:{color:"red", size:markerSize, symbol:"circle"}},
 
   OVC: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:16, symbol:"circle"}},
+        marker:{color:"black", size:markerSize, symbol:"circle"}},
 		
   VV: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:16, symbol:"circle"}},
+        marker:{color:"black", size:markerSize, symbol:"circle"}},
 		
   LIFR: {x:[], y:[], mode:"markers", name:"LIFR",
-        marker:{color:"purple", size:16, symbol:"square"}},
+        marker:{color:"purple", size:markerSize, symbol:"square"}},
 
   IFR: {x:[], y:[], mode:"markers", name:"IFR",
-        marker:{color:"red", size:16, symbol:"square"}},
+        marker:{color:"red", size:markerSize, symbol:"square"}},
 
   MVFR: {x:[], y:[], mode:"markers", name:"MVFR",
-        marker:{color:"blue", size:16, symbol:"square"}},
+        marker:{color:"blue", size:markerSize, symbol:"square"}},
 
   VFR: {x:[], y:[], mode:"markers", name:"VFR",
-        marker:{color:"green", size:16, symbol:"square"}}
+        marker:{color:"green", size:markerSize, symbol:"square"}}
 };
 
 let maxHeight = -1000;
@@ -323,38 +333,38 @@ Plotly.newPlot("plot", plotTraces, {
 
 // ---------------- PLOT 0-3000ft ----------------
 
-function plot3k(data, icao){
+function plot3k(data, icao, markerSize){
 
 let traces = {
   SKC: {x:[], y:[], mode:"markers", name:"SKC",
-        marker:{color:"yellow", size:16, symbol:"circle"}},
+        marker:{color:"yellow", size:markerSize, symbol:"circle"}},
 
   FEW: {x:[], y:[], mode:"markers", name:"FEW",
-        marker:{color:"green", size:16, symbol:"circle"}},
+        marker:{color:"green", size:markerSize, symbol:"circle"}},
 
   SCT: {x:[], y:[], mode:"markers", name:"SCT",
-        marker:{color:"blue", size:16, symbol:"circle"}},
+        marker:{color:"blue", size:markerSize, symbol:"circle"}},
 
   BKN: {x:[], y:[], mode:"markers", name:"BKN",
-        marker:{color:"red", size:16, symbol:"circle"}},
+        marker:{color:"red", size:markerSize, symbol:"circle"}},
 
   OVC: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:16, symbol:"circle"}},
+        marker:{color:"black", size:markerSize, symbol:"circle"}},
 	
   VV: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:16, symbol:"circle"}},
+        marker:{color:"black", size:markerSize, symbol:"circle"}},
 		
   LIFR: {x:[], y:[], mode:"markers", name:"LIFR",
-        marker:{color:"purple", size:16, symbol:"square"}},
+        marker:{color:"purple", size:markerSize, symbol:"square"}},
 
   IFR: {x:[], y:[], mode:"markers", name:"IFR",
-        marker:{color:"red", size:16, symbol:"square"}},
+        marker:{color:"red", size:markerSize, symbol:"square"}},
 
   MVFR: {x:[], y:[], mode:"markers", name:"MVFR",
-        marker:{color:"blue", size:16, symbol:"square"}},
+        marker:{color:"blue", size:markerSize, symbol:"square"}},
 
   VFR: {x:[], y:[], mode:"markers", name:"VFR",
-        marker:{color:"green", size:16, symbol:"square"}}
+        marker:{color:"green", size:markerSize, symbol:"square"}}
 };
 
 let maxHeight = -500;
@@ -420,7 +430,7 @@ Plotly.newPlot("plot3k", plotTraces, {
 
 
 //Plot Mesonet
-function plotMesonet(data, icao){
+function plotMesonet(data, icao, markerSize){
 
 	if(!data || data.length === 0){
 		console.log("Mesonet data empty");
@@ -429,22 +439,22 @@ function plotMesonet(data, icao){
 
   let traces = {
     SKC: {x:[], y:[], mode:"markers", name:"SKC",
-          marker:{color:"yellow", size:8}},
+          marker:{color:"yellow", size:markerSize}},
 
     FEW: {x:[], y:[], mode:"markers", name:"FEW",
-          marker:{color:"green", size:8}},
+          marker:{color:"green", size:markerSize}},
 
     SCT: {x:[], y:[], mode:"markers", name:"SCT",
-          marker:{color:"blue", size:8}},
+          marker:{color:"blue", size:markerSize}},
 
     BKN: {x:[], y:[], mode:"markers", name:"BKN",
-          marker:{color:"red", size:8}},
+          marker:{color:"red", size:markerSize}},
 
     OVC: {x:[], y:[], mode:"markers", name:"OVC/VV",
-          marker:{color:"black", size:8}},
+          marker:{color:"black", size:markerSize}},
 		  
     VV: {x:[], y:[], mode:"markers", name:"OVC/VV",
-          marker:{color:"black", size:8}}
+          marker:{color:"black", size:markerSize}}
   };
 
   data.forEach(m => {
