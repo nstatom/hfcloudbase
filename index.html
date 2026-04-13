@@ -322,8 +322,8 @@ function formatMetarString(m, icao){
   }
 
   // Wind
-  const wind = m.wind_spd && m.wind_dir
-    ? `${m.wind_spd}kt from ${m.wind_dir}deg`
+  const wind = m.wind_speed && m.wind_dir
+    ? `${m.wind_speed}kt from ${m.wind_dir}deg`
     : "N/A";
 
   // Visibility
