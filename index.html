@@ -105,10 +105,6 @@ pre {
     </p>
 
     <br>
-    <h3>Decoded METAR Summary</h3>
-    <pre id="decoded"></pre>
-
-    <br>
     <h3>Aviation Weather METAR Data Request</h3>
     <div id="status"></div>
 
@@ -142,8 +138,8 @@ pre {
      < script >
 
     const NOAA_URL = "https://noaa-fetch.nstatom.workers.dev";
-    const MESONET_URL = "https://mesonet-fetch.nstatom.workers.dev";
-    const SYNOPTIC_URL = "https://synoptic-fetch.nstatom.workers.dev/";
+const MESONET_URL = "https://mesonet-fetch.nstatom.workers.dev";
+const SYNOPTIC_URL = "https://synoptic-fetch.nstatom.workers.dev/";
 
 // ---------------- RUN ----------------
 
@@ -256,14 +252,6 @@ async function run() {
         "<br><span class='error'>Synoptic download failed</span>";
         console.error(err);
     }
-	
-	let decodedLines = json3.data.map(m => formatMetarString(m, icao));
-
-    // Optional: newest first
-    decodedLines.reverse();
-
-    document.getElementById("decoded").textContent =
-    decodedLines.join("\n");
 
     // Worker URL
     const url = `${NOAA_URL}?station=${icao}&hours=${hours}`;
@@ -323,46 +311,6 @@ async function run() {
     }
 
 }
-
-
-// ------------METAR String Formatter------------
-function formatMetarString(m, icao){
-
-  const t = new Date(m.time * 1000);
-  const utc = t.getUTCHours().toString().padStart(2,"0") +
-              t.getUTCMinutes().toString().padStart(2,"0");
-
-  const source = (m.source === "HF") ? "HF METAR" : "STD METAR";
-
-  // IFR category
-  const category = m.ifr || "UNK";
-
-  // Clouds
-  let cloudStr = "None";
-  if(m.clouds && m.clouds.length > 0){
-    cloudStr = m.clouds
-      .map(c => `${c.cover} ${c.base}ft`)
-      .join(", ");
-  }
-
-  // Wind
-  const wind = m.wind_speed && m.wind_dir
-    ? `${m.wind_speed}kt from ${m.wind_dir}`
-    : "N/A";
-
-  // Visibility
-  const viz = m.visibility ? `${m.visibility}sm` : "N/A";
-
-  // Altimeter
-  const alt = m.altim ? `${m.altim}in` : "N/A";
-
-  // Temps
-  const temp = (m.temp !== undefined) ? `${m.temp}C` : "N/A";
-  const dewp = (m.dewp !== undefined) ? `${m.dewp}C` : "N/A";
-
-  return `${icao} ${utc} UTC: ${category} (${source}); Clouds: ${cloudStr}; Wind: ${wind}; Viz: ${viz}; Alt: ${alt}; Temp: ${temp}; Dewp: ${dewp};`;
-}
-
 
 // ------------Marker size lookup table--------------
 function getMarkerSizes(hours) {
