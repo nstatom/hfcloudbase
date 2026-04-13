@@ -330,6 +330,7 @@ let maxHeight = -1000;
 
 data.forEach(m => {
 
+let opacity = (m.source === "HF") ? 0.4 : 1.0;
 let t = new Date(m.time * 1000);
 
 // --- IFR category (plot at fixed height) ---
@@ -343,7 +344,7 @@ if(m.ifr && traces[m.ifr]){
   if(!m.clouds || m.clouds.length === 0){
     traces.SKC.x.push(t);
     traces.SKC.y.push(0);
-	traces[cover].marker.opacity.push(opacity);
+	traces.SKC.marker.opacity.push(opacity);
     return;
   }
 
@@ -534,7 +535,6 @@ let maxHeight = -500;
 
 data.forEach(m => {
 
-  let opacity = (m.source === "HF") ? 0.4 : 1.0;
   let t = new Date(m.time*1000);
 
 // --- IFR category (plot at fixed height) ---
