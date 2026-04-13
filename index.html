@@ -72,6 +72,10 @@ Hourly cloud data (larger icons) are based on standard airport METAR readings th
 </p>
 
 <br>
+<h3>Decoded METAR Summary</h3>
+<pre id="decoded"></pre>
+
+<br>
 <h3>Aviation Weather METAR Data Request</h3>
 <div id="status"></div>
 
@@ -208,6 +212,13 @@ try {
     return;
   }
 
+// ---- ADD THIS RIGHT HERE ----
+let decodedLines = json3.data.map(m => formatMetarString(m, icao));
+decodedLines.reverse();
+
+document.getElementById("decoded").textContent =
+  decodedLines.join("\n");
+  
   // title
   document.getElementById("titleSynoptic").innerText =
     `${icao} ${hours}hr Synoptic Cloud Height`;
@@ -288,6 +299,46 @@ function getMarkerSizes(hours){
   else if(hours > 11) return {big:16, small:9};
   else if(hours > 5) return {big:17, small:10};
   else return {big:18, small:11};
+}
+
+// ------------METAR String Formatter--------------
+function formatMetarString(m, icao){
+
+  const t = new Date(m.time * 1000);
+  const utc = t.getUTCHours().toString().padStart(2,"0") +
+              t.getUTCMinutes().toString().padStart(2,"0");
+
+  const source = (m.source === "HF") ? "HF METAR" : "STD METAR";
+
+  // IFR category
+  const category = m.ifr || "UNK";
+
+  // Clouds
+  let cloudStr = "None";
+  if(m.clouds && m.clouds.length > 0){
+    cloudStr = m.clouds
+      .map(c => `${c.cover} ${c.base}ft`)
+      .join(", ");
+  }
+
+  // Wind
+  const wind = m.wind_speed && m.wind_dir
+    ? `${m.wind_speed}kt from ${m.wind_dir}`
+    : "N/A";
+
+  // Visibility
+  const viz = (m.visibility !== undefined)
+  ? `${m.visibility}sm`
+  : "N/A";
+
+  // Altimeter
+  const alt = m.altim ? `${m.altim}in` : "N/A";
+
+  // Temps
+  const temp = (m.temp !== undefined) ? `${m.temp}C` : "N/A";
+  const dewp = (m.dewp !== undefined) ? `${m.dewp}C` : "N/A";
+
+  return `${icao} ${utc} UTC: ${category} (${source}); Clouds: ${cloudStr}; Wind: ${wind}; Viz: ${viz}; Alt: ${alt}; Temp: ${temp}; Dewp: ${dewp};`;
 }
 
 // ---------------- PLOT Synoptic Full Range ----------------
