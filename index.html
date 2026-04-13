@@ -72,7 +72,7 @@ Hourly cloud data (larger icons) are based on standard airport METAR readings th
 </p>
 
 <br>
-<h3>Decoded METAR Summary</h3>
+<h3>Decoded METAR Stream</h3>
 <pre id="decoded"></pre>
 
 <br>
@@ -323,20 +323,20 @@ function formatMetarString(m, icao){
 
   // Wind
   const wind = (m.wind_speed !== null && m.wind_dir !== null)
-    ? `${m.wind_speed}kt from ${m.wind_dir}deg`
+    ? `${m.wind_speed} kt from ${m.wind_dir} deg`
     : "N/A";
 
   // Visibility
   const viz = (m.visibility !== undefined)
-  ? `${m.visibility}sm`
+  ? `${m.visibility} sm`
   : "N/A";
 
   // Pressure
-  const pressure = m.pressure ? `${m.pressure}in` : "N/A";
+  const pressure = m.pressure ? `${m.pressure} in` : "N/A";
 
   // Temps
-  const temp = (m.temp !== undefined) ? `${m.temp}C` : "N/A";
-  const dewpoint = (m.dewpoint !== undefined) ? `${m.dewpoint}C` : "N/A";
+  const temp = (m.temp !== undefined) ? `${m.temp} C` : "N/A";
+  const dewpoint = (m.dewpoint !== undefined) ? `${m.dewpoint} C` : "N/A";
 
   return `${icao} ${utc} UTC: ${category} (${source}); Clouds: ${cloudStr}; Wind: ${wind}; Viz: ${viz}; Press: ${pressure}; Temp: ${temp}; Dewp: ${dewpoint};`;
 }
