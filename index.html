@@ -8,14 +8,7 @@
 
 <style>
 body{font-family:Arial;margin:25px;}
-#plotfull, #plot3k, #plotMesonet, #plotSynoptic, #plotIFR{height:450px;border:2px solid #444;margin-top:10px;}
-pre{background:#eee;padding:10px;height:200px;overflow:auto;}
-.error{color:red;}
-.warning{color:orange;}
-</style>
-
-<style>
-body{font-family:Arial;margin:25px;}
+#plotSynoptic{height:450px;border:2px solid #444;margin-top:10px;}
 #plotIFR{height:100px;border:2px solid #444;margin-top:10px;}
 pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 .error{color:red;}
@@ -45,18 +38,6 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <div id="airportInfo" style="margin-top:10px;"></div>
 
 <br>
-<h3 id="titleMesonet"></h3>
-<div id="plotMesonet" style="height:450px; border:2px solid #444; margin-top:10px;"></div>
-
-<br>
-<h3 id="title3k"></h3>
-<div id="plot3k"></div>
-
-<br>
-<h3 id="titleFull"></h3>
-<div id="plotfull"></div>
-
-<br>
 <h3 id="titleSynoptic"></h3>
 <div id="plotSynoptic"></div>
 
@@ -65,31 +46,15 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <b>Cloud Height Plot Information</b>
 
 <p>
-Currently the plots can contain up to 168 hours (1 week) of METAR data. Plotted cloud heights are in reference to the airport ground elevation and rounded to the nearest 100 ft. Add the specific airport elevation that is listed above to get cloud heights in reference to MSL. Clear sky conditions (yellow circles) are plotted at 0 ft elevation and the flight rules category is plotted at a negative elevation arbitrarily for data tracking convenience (color coded squares). Note that lower level cloudy conditions (especially overcast) can obscure higher elevation clouds from being detected by the airport's ceilometer.
+Currently the plots can contain up to 168 hours (1 week) of METAR data. Plotted cloud heights are in reference to the airport ground elevation and rounded to the nearest 100 ft. Add the specific airport elevation listed above to get cloud heights in reference to MSL. Clear sky conditions (yellow circles) are plotted at 0 ft elevation and the flight rules category is plotted at a negative elevation arbitrarily for data tracking convenience (color coded squares). Note that lower level cloudy conditions (especially overcast) can obscure higher elevation clouds from being detected by the airport's ceilometer.
 </p>
 <p>
-Hourly cloud data (larger icons) are based on standard airport METAR readings that are fetched using the NOAA Aviation Weather API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations. The flight rules category is not computed for high rate data and therefore omitted from the plot. High frequency (HF) cloud data (smaller icons) are generated from the same METAR stations but are fetched using the Iowa State Mesonet API. The resulting HF ceilometer observations may be more prone to overall cloud status mischaracterization in patchy cloud conditions than the hourly METAR data since each HF observation is the result of only a 5 minute collection of vertical point measurements with standard averaging. 
+Hourly cloud data (larger filled icons) are based on standard airport METAR readings that are fetched using Synoptic Data's API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations. High frequency (HF) cloud data (smaller unfilled icons) are generated from the same METAR stations and fetched using the same API. The resulting HF ceilometer observations may be more prone to overall cloud status mischaracterization in patchy cloud conditions than the hourly METAR data since each HF observation is the result of only a 5 minute collection of vertical point measurements with standard averaging. 
 </p>
 
 <br>
 <h3>Decoded METAR Stream</h3>
 <pre id="decoded"></pre>
-
-<br>
-<h3>Aviation Weather METAR Data Request</h3>
-<div id="status"></div>
-
-<br>
-<h3>Aviation Weather METAR Data Response</h3>
-<pre id="raw"></pre>
-
-<br>
-<h3>Mesonet HFMETAR Data Request</h3>
-<div id="status2"></div>
-
-<br>
-<h3>Mesonet HFMETAR Data Response</h3>
-<pre id="raw2"></pre>
 
 <br>
 <h3>Synoptic HFMETAR Data Request</h3>
@@ -103,13 +68,11 @@ Hourly cloud data (larger icons) are based on standard airport METAR readings th
 <b>Data Disclaimer</b>
 
 <p>
-This website was made by Nick Statom of the Air-Sea Interaction Lab at Scripps Institution of Oceanography and is not actively monitored and inconsistently updated. Users who utilize this site's data assume all risk and responsibility. Data outages may occur occasionally due to changes in the source APIs or data storage server status.
+This website was made by Nick Statom of the Air-Sea Interaction Lab at Scripps Institution of Oceanography and is not actively monitored and only occasionally updated. Users who utilize this site's data assume all risk and responsibility. Data outages may occur occasionally due to changes in the source API or data storage server status.
 </p>
 
 <script>
 
-const NOAA_URL = "https://noaa-fetch.nstatom.workers.dev";
-const MESONET_URL = "https://mesonet-fetch.nstatom.workers.dev";
 const SYNOPTIC_URL = "https://synoptic-fetch.nstatom.workers.dev/";
 
 // ---------------- RUN ----------------
@@ -117,7 +80,7 @@ const SYNOPTIC_URL = "https://synoptic-fetch.nstatom.workers.dev/";
 async function run(){
   
 let icao = document.getElementById("icao").value.toUpperCase();
-let hours = parseInt(document.getElementById("hours").value);
+let hours = parseInt(document.getElementById("hours").value) || 24;
 let sizes = getMarkerSizes(hours);
 
 try {
@@ -127,68 +90,19 @@ try {
   console.warn("localStorage unavailable");
 }
 
-document.getElementById("title3k").innerText =
-  `${icao} ${hours}hr Low Cloud Height (=< 3000 ft) and Flight Rules Category`;
-
-document.getElementById("titleFull").innerText =
-  `${icao} ${hours}hr Full Range Cloud Height and Flight Rules Category`;
-
 // enforce max
 if(hours > 168){
   hours = 168;
   document.getElementById("hours").value = 168;
 
-  document.getElementById("status").innerHTML =
+  document.getElementById("status3").innerHTML = synopticUrl;
     "<span class='warning'>Max hours is 168. Reset to 168.</span>";
-}
-
-// ---------------- MESONET FETCH ----------------
-
-const mesoUrl = `${MESONET_URL}?station=${icao}&hours=${hours}`;
-
-document.getElementById("status2").innerHTML = mesoUrl;
-
-try {
-
-  const r2 = await fetch(mesoUrl);
-
-  document.getElementById("status2").innerHTML +=
-    "<br>Status: " + r2.status;
-
-  const json2 = await r2.json();
-
-  // show raw response
-  document.getElementById("raw2").textContent =
-    JSON.stringify(json2, null, 2);
-
-  console.log("Mesonet:", json2);
-
-  // validate
-  if(!json2.data || !Array.isArray(json2.data)){
-    document.getElementById("status2").innerHTML +=
-      "<br><span class='error'>Invalid Mesonet data</span>";
-    return;
-  }
-
-  // title
-  document.getElementById("titleMesonet").innerText =
-    `${icao} ${hours}hr HF Low Cloud Height (<= 3000 ft)`;
-
-  // plot
-  plotMesonet(json2.data, icao, sizes.small);
-
-} catch(err){
-  document.getElementById("status2").innerHTML +=
-    "<br><span class='error'>Mesonet download failed</span>";
-  console.error(err);
 }
 
 
 // ---------------- Synoptic FETCH ----------------
 
 const synopticUrl = `${SYNOPTIC_URL}?station=${icao}&hours=${hours}`;
-
-document.getElementById("status3").innerHTML = synopticUrl;
 
 try {
 
@@ -198,6 +112,23 @@ try {
     "<br>Status: " + r3.status;
 
   const json3 = await r3.json();
+
+// --- Airport Info ---
+if(json3.station){   // adjust if your structure is slightly different
+
+	const lat = json3.station?.lat;
+	const lon = json3.station?.lon;
+	const alt = json3.station?.elev;
+
+	if(lat !== undefined && lon !== undefined){
+
+		document.getElementById("airportInfo").innerHTML = `
+		<b>${icao} Airport Information:</b>
+		Latitude = ${lat}, Longitude = ${lon}, Elevation = ${alt} ft.
+		<br>
+		`;
+	}
+}
 
   // show raw response
   document.getElementById("raw3").textContent =
@@ -226,65 +157,11 @@ document.getElementById("decoded").textContent =
   // plot
   plotSynoptic(json3.data, icao, sizes.small);
 
-} catch(err){
-  document.getElementById("status3").innerHTML +=
-    "<br><span class='error'>Synoptic download failed</span>";
-  console.error(err);
-}
-
-
-// Worker URL
-const url = `${NOAA_URL}?station=${icao}&hours=${hours}`;
-
-document.getElementById("status").innerHTML = url;
-
-try{
-
-const r = await fetch(url);
-
-document.getElementById("status").innerHTML +=
-"<br>Status: " + r.status;
-
-const json = await r.json();
-
-if(!json.data || !Array.isArray(json.data)){
-  document.getElementById("status").innerHTML +=
-    "<br><span class='error'>Invalid data returned</span>";
-  console.log("Bad response:", json);
-  return;
-}
-
-// --- Airport Info ---
-if(json.station){   // adjust if your structure is slightly different
-
-	const lat = json.station?.lat;
-	const lon = json.station?.lon;
-	const alt = json.station?.elev;
-
-	if(lat !== undefined && lon !== undefined){
-
-		document.getElementById("airportInfo").innerHTML = `
-		<b>${icao} Airport Information:</b>
-		Latitude = ${lat}, Longitude = ${lon}, Elevation = ${alt} ft.
-		<br>
-		`;
-	}
-}
-
-// show full response
-document.getElementById("raw").textContent =
-JSON.stringify(json, null, 2);
-
-// Worker returns { data: [...] }
-plot3k(json.data, icao, sizes.big);
-
-// Worker returns { data: [...] }
-plotfull(json.data, icao, sizes.big);
 
 }catch(err){
 
-document.getElementById("status").innerHTML =
-"<span class='error'>Download failed</span>";
+document.getElementById("status3").innerHTML +=
+"<br><span class='error'>Download failed</span>";
 
 console.error(err);
 
@@ -327,16 +204,23 @@ function formatMetarString(m, icao){
     : "N/A";
 
   // Visibility
-  const viz = (m.visibility !== undefined)
+  const viz = (m.visibility !== null && m.visibility !== undefined)
   ? `${m.visibility} sm`
   : "N/A";
 
   // Pressure
-  const pressure = m.pressure ? `${m.pressure} in` : "N/A";
-
+  const pressure = (m.pressure !== null)
+  ? `${m.pressure} in`
+  : "N/A";
+  
   // Temps
-  const temp = (m.temp !== undefined) ? `${m.temp} C` : "N/A";
-  const dewpoint = (m.dewpoint !== undefined) ? `${m.dewpoint} C` : "N/A";
+  const temp = (m.temp !== undefined)
+  ? `${m.temp} C`
+  : "N/A";
+  
+  const dewpoint = (m.dewpoint !== undefined)
+  ? `${m.dewpoint} C`
+  : "N/A";
 
   return `${icao} ${utc} UTC: ${category} (${source}); Clouds: ${cloudStr}; Wind: ${wind}; Viz: ${viz}; Press: ${pressure}; Temp: ${temp}; Dewp: ${dewpoint};`;
 }
@@ -472,280 +356,11 @@ Plotly.newPlot("plotSynoptic", plotTraces, {
 
   yaxis:{
     title:"Cloud Base AGL [ft]",
-    range:[-3000, 31000]
+    range:[-3000, yMax]
   }
 
 }, {displaylogo:false});
 
-}
-
-
-// ---------------- PLOT Full Range ----------------
-
-function plotfull(data, icao, markerSize){
-
-let traces = {
-  SKC: {x:[], y:[], mode:"markers", name:"SKC",
-        marker:{color:"yellow", size:markerSize, symbol:"circle"}},
-
-  FEW: {x:[], y:[], mode:"markers", name:"FEW",
-        marker:{color:"green", size:markerSize, symbol:"circle"}},
-
-  SCT: {x:[], y:[], mode:"markers", name:"SCT",
-        marker:{color:"blue", size:markerSize, symbol:"circle"}},
-
-  BKN: {x:[], y:[], mode:"markers", name:"BKN",
-        marker:{color:"red", size:markerSize, symbol:"circle"}},
-
-  OVC: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:markerSize, symbol:"circle"}},
-		
-  VV: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:markerSize, symbol:"circle"}},
-		
-  LIFR: {x:[], y:[], mode:"markers", name:"LIFR",
-        marker:{color:"purple", size:markerSize, symbol:"square"}},
-
-  IFR: {x:[], y:[], mode:"markers", name:"IFR",
-        marker:{color:"red", size:markerSize, symbol:"square"}},
-
-  MVFR: {x:[], y:[], mode:"markers", name:"MVFR",
-        marker:{color:"blue", size:markerSize, symbol:"square"}},
-
-  VFR: {x:[], y:[], mode:"markers", name:"VFR",
-        marker:{color:"green", size:markerSize, symbol:"square"}}
-};
-
-let maxHeight = -1000;
-
-data.forEach(m => {
-
-let t = new Date(m.time * 1000);
-
-// --- IFR category (plot at fixed height) ---
-if(m.ifr && traces[m.ifr]){
-  traces[m.ifr].x.push(t);
-  traces[m.ifr].y.push(-2000);
-}
-
-  // --- SKC / NSC (no clouds) ---
-  if(!m.clouds || m.clouds.length === 0){
-    traces.SKC.x.push(t);
-    traces.SKC.y.push(0);
-    return;
-  }
-
-  // --- Cloud layers ---
-  m.clouds.forEach(c => {
-
-    if(!c.base) return;
-
-    let base = c.base;
-    let cover = c.cover;
-
-    if(base > maxHeight) maxHeight = base + 1000;
-
-    if(traces[cover]){
-      traces[cover].x.push(t);
-      traces[cover].y.push(base);
-    }
-
-  });
-
-});
-
-// enforce minimum 3000 ft
-let yMax = Math.max(maxHeight, 3000);
-
-// convert traces object → array
-let plotTraces = Object.values(traces);
-
-// remove empty traces (clean legend)
-plotTraces = plotTraces.filter(tr => tr.x.length > 0);
-
-Plotly.newPlot("plotfull", plotTraces, {
-
-  margin:{l:50,r:20,t:20,b:40},
-  
-  xaxis:{
-    title:"Local Time"
-  },
-
-  yaxis:{
-    title:"Cloud Base AGL [ft]",
-    range:[-3000, 31000]
-  }
-
-}, {displaylogo:false});
-
-}
-
-// ---------------- PLOT 0-3000ft ----------------
-
-function plot3k(data, icao, markerSize){
-
-let traces = {
-  SKC: {x:[], y:[], mode:"markers", name:"SKC",
-        marker:{color:"yellow", size:markerSize, symbol:"circle"}},
-
-  FEW: {x:[], y:[], mode:"markers", name:"FEW",
-        marker:{color:"green", size:markerSize, symbol:"circle"}},
-
-  SCT: {x:[], y:[], mode:"markers", name:"SCT",
-        marker:{color:"blue", size:markerSize, symbol:"circle"}},
-
-  BKN: {x:[], y:[], mode:"markers", name:"BKN",
-        marker:{color:"red", size:markerSize, symbol:"circle"}},
-
-  OVC: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:markerSize, symbol:"circle"}},
-	
-  VV: {x:[], y:[], mode:"markers", name:"OVC/VV",
-        marker:{color:"black", size:markerSize, symbol:"circle"}},
-		
-  LIFR: {x:[], y:[], mode:"markers", name:"LIFR",
-        marker:{color:"purple", size:markerSize, symbol:"square"}},
-
-  IFR: {x:[], y:[], mode:"markers", name:"IFR",
-        marker:{color:"red", size:markerSize, symbol:"square"}},
-
-  MVFR: {x:[], y:[], mode:"markers", name:"MVFR",
-        marker:{color:"blue", size:markerSize, symbol:"square"}},
-
-  VFR: {x:[], y:[], mode:"markers", name:"VFR",
-        marker:{color:"green", size:markerSize, symbol:"square"}}
-};
-
-let maxHeight = -500;
-
-data.forEach(m => {
-
-  let t = new Date(m.time*1000);
-
-// --- IFR category (plot at fixed height) ---
-if(m.ifr && traces[m.ifr]){
-  traces[m.ifr].x.push(t);
-  traces[m.ifr].y.push(-200);
-}
-
-  // --- SKC / NSC (no clouds) ---
-  if(!m.clouds || m.clouds.length === 0){
-    traces.SKC.x.push(t);
-    traces.SKC.y.push(0);
-    return;
-  }
-
-  // --- Cloud layers ---
-  m.clouds.forEach(c => {
-
-    if(!c.base) return;
-
-    let base = c.base;
-    let cover = c.cover;
-
-    if(base > maxHeight) maxHeight = base + 1000;
-
-    if(traces[cover]){
-      traces[cover].x.push(t);
-      traces[cover].y.push(base);
-    }
-
-  });
-
-});
-
-// convert traces object → array
-let plotTraces = Object.values(traces);
-
-// remove empty traces (clean legend)
-plotTraces = plotTraces.filter(tr => tr.x.length > 0);
-
-Plotly.newPlot("plot3k", plotTraces, {
-
-  margin:{l:50,r:20,t:20,b:40},
-
-  xaxis:{
-    title:"Local Time"
-  },
-
-  yaxis:{
-    title:"Cloud Base AGL [ft]",
-    range:[-300, 3100]
-  }
-
-}, {displaylogo:false});
-
-}
-
-
-//Plot Mesonet
-function plotMesonet(data, icao, markerSize){
-
-	if(!data || data.length === 0){
-		console.log("Mesonet data empty");
-		return;
-	}
-
-  let traces = {
-    SKC: {x:[], y:[], mode:"markers", name:"SKC",
-          marker:{color:"yellow", size:markerSize}},
-
-    FEW: {x:[], y:[], mode:"markers", name:"FEW",
-          marker:{color:"green", size:markerSize}},
-
-    SCT: {x:[], y:[], mode:"markers", name:"SCT",
-          marker:{color:"blue", size:markerSize}},
-
-    BKN: {x:[], y:[], mode:"markers", name:"BKN",
-          marker:{color:"red", size:markerSize}},
-
-    OVC: {x:[], y:[], mode:"markers", name:"OVC/VV",
-          marker:{color:"black", size:markerSize}},
-		  
-    VV: {x:[], y:[], mode:"markers", name:"OVC/VV",
-          marker:{color:"black", size:markerSize}}
-  };
-
-  data.forEach(m => {
-
-    let t = new Date(m.time * 1000);
-
-    if(!m.clouds || m.clouds.length === 0){
-      traces.SKC.x.push(t);
-      traces.SKC.y.push(0);
-      return;
-    }
-
-    m.clouds.forEach(c => {
-
-      if(!c.base) return;
-
-      if(traces[c.cover]){
-        traces[c.cover].x.push(t);
-        traces[c.cover].y.push(c.base);
-      }
-
-    });
-
-  });
-
-  let plotTraces = Object.values(traces)
-    .filter(tr => tr.x.length > 0);
-
-  Plotly.newPlot("plotMesonet", plotTraces, {
-
-    margin:{l:50,r:20,t:20,b:40},
-
-    xaxis:{
-	  title:"Local Time"
-	},
-
-    yaxis:{
-	  title:"Cloud Base AGL [ft]",
-      range:[-100, 3100]
-    }
-
-  }, {displaylogo:false});
 }
 
 // ---------------- INIT ----------------
