@@ -100,7 +100,7 @@ if(hours > 168){
   document.getElementById("hours").value = 168;
 
   document.getElementById("status3").innerHTML = 
-    synopticUrl + "<span class='warning'>Max hours is 168. Reset to 168.</span>";
+    "<span class='warning'>Max hours is 168. Reset to 168.</span>";
 }
 
 
@@ -364,8 +364,6 @@ Plotly.newPlot("plotSynoptic", plotTraces, {
   }
 
 }, {displaylogo:false});
-
-}
 
 // -------- SECOND PLOT (FULL RANGE) --------
 
