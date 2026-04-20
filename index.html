@@ -102,9 +102,6 @@ try {
 if(hours > 168){
   hours = 168;
   document.getElementById("hours").value = 168;
-
-  document.getElementById("status3").innerHTML =
-  "Status: " + r3.status;
 }
 
 
@@ -163,7 +160,7 @@ document.getElementById("decoded").textContent =
     `${icao} ${hours} hr 3000 ft Cloud Profile`;
 
   // plot
-  plotSynoptic(json3.data, icao, sizes.small, hours);
+  plotSynoptic(json3.data, icao, sizes, hours);
 
 
 }catch(err){
@@ -177,7 +174,6 @@ console.error(err);
 
 }
 
-const json3 = await r3.json();
 
 // ------------Marker size lookup table--------------
 function getMarkerSizes(hours){
@@ -237,7 +233,7 @@ function formatMetarString(m, icao){
 
 // ---------------- PLOT Synoptic Full Range ----------------
 
-function plotSynoptic(data, icao, markerSize, hours){
+function plotSynoptic(data, icao, sizes, hours){
 
 let traces = {
   SKC_STD: {x:[], y:[], mode:"markers", name:"SKC (STD)",
@@ -301,6 +297,36 @@ let traces = {
         marker:{color:"green", size:markerSize * 0.5, symbol:"square-open", opacity:1}}
 };
 
+//----------------- Wind Plot-----------------
+document.getElementById("titleWind").innerText =
+  `${icao} Wind Speed & Direction`;
+
+Plotly.newPlot("plotWind",
+  [windSpeed_STD, windSpeed_HF, windDir_STD, windDir_HF],
+  {
+    margin:{l:50,r:50,t:20,b:40},
+
+    xaxis:{
+      title:"Time"
+    },
+
+    yaxis:{
+      title:"Wind Speed (kt)",
+      rangemode:"tozero"
+    },
+
+    yaxis2:{
+      title:"Wind Direction (deg)",
+      overlaying:"y",
+      side:"right",
+      range:[0,360]
+    },
+
+    legend:{orientation:"h"}
+  },
+  {displaylogo:false}
+);
+
 let maxHeight = -1000;
 
 data.forEach(m => {
@@ -359,7 +385,7 @@ let windDir_STD = {x:[], y:[], mode:"markers", name:"Wind Dir STD", yaxis:"y2",
 let windDir_HF = {x:[], y:[], mode:"markers", name:"Wind Dir HF", yaxis:"y2",
   marker:{size:sizes.small, color:"blue", symbol:"triangle-open"}};
 
-json3.data.forEach(m => {
+data.forEach(m => {
 
   const t = new Date(m.time * 1000);
   const isHF = (m.source === "HF");
@@ -443,38 +469,6 @@ Plotly.newPlot("plotSynopticFull", plotTracesFull, {
 }, {displaylogo:false});
 
 }
-
-
-//----------------- Wind Plot-----------------
-document.getElementById("titleWind").innerText =
-  `${icao} Wind Speed & Direction`;
-
-Plotly.newPlot("plotWind",
-  [windSpeed_STD, windSpeed_HF, windDir_STD, windDir_HF],
-  {
-    margin:{l:50,r:50,t:20,b:40},
-
-    xaxis:{
-      title:"Time"
-    },
-
-    yaxis:{
-      title:"Wind Speed (kt)",
-      rangemode:"tozero"
-    },
-
-    yaxis2:{
-      title:"Wind Direction (deg)",
-      overlaying:"y",
-      side:"right",
-      range:[0,360]
-    },
-
-    legend:{orientation:"h"}
-  },
-  {displaylogo:false}
-);
-
 
 // ---------------- INIT ----------------
 
