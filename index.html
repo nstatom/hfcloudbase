@@ -125,8 +125,8 @@ try {
 
   const r3 = await fetch(synopticUrl);
 
-  document.getElementById("status3").innerHTML +=
-    "<br>Status: " + r3.status;
+  document.getElementById("status3").innerHTML =
+    "Status: " + r3.status;
 
   const json3 = await r3.json();
 
@@ -248,64 +248,64 @@ function formatMetarString(m, icao){
 function plotSynoptic(data, icao, sizes, hours){
 
 let traces = {
-  SKC_STD: {x:[], y:[], mode:"markers", name:"SKC (STD)",
+  SKC_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"SKC (STD)",
         marker:{color:"yellow", size:sizes.big, symbol:"circle", opacity:1}},
 
-  FEW_STD: {x:[], y:[], mode:"markers", name:"FEW (STD)",
+  FEW_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"FEW (STD)",
         marker:{color:"green", size:sizes.big, symbol:"circle", opacity:1}},
 
-  SCT_STD: {x:[], y:[], mode:"markers", name:"SCT (STD)",
+  SCT_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"SCT (STD)",
         marker:{color:"blue", size:sizes.big, symbol:"circle", opacity:1}},
 
-  BKN_STD: {x:[], y:[], mode:"markers", name:"BKN (STD)",
+  BKN_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"BKN (STD)",
         marker:{color:"red", size:sizes.big, symbol:"circle", opacity:1}},
 
-  OVC_STD: {x:[], y:[], mode:"markers", name:"OVC/VV (STD)",
+  OVC_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"OVC/VV (STD)",
         marker:{color:"black", size:sizes.big, symbol:"circle", opacity:1}},
 		
-  VV_STD: {x:[], y:[], mode:"markers", name:"OVC/VV (STD)",
+  VV_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"OVC/VV (STD)",
         marker:{color:"black", size:sizes.big, symbol:"circle", opacity:1}},
 		
-  LIFR_STD: {x:[], y:[], mode:"markers", name:"LIFR (STD)",
+  LIFR_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"LIFR (STD)",
         marker:{color:"purple", size:sizes.big, symbol:"square", opacity:1}},
 
-  IFR_STD: {x:[], y:[], mode:"markers", name:"IFR (STD)",
+  IFR_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"IFR (STD)",
         marker:{color:"red", size:sizes.big, symbol:"square", opacity:1}},
 
-  MVFR_STD: {x:[], y:[], mode:"markers", name:"MVFR (STD)",
+  MVFR_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"MVFR (STD)",
         marker:{color:"blue", size:sizes.big, symbol:"square", opacity:1}},
 
-  VFR_STD: {x:[], y:[], mode:"markers", name:"VFR (STD)",
+  VFR_STD: {x:[], y:[], mode:"markers", type:"scattergl", name:"VFR (STD)",
         marker:{color:"green", size:sizes.big, symbol:"square", opacity:1}},
 		
-  SKC_HF: {x:[], y:[], mode:"markers", name:"SKC (HF)",
+  SKC_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"SKC (HF)",
         marker:{color:"yellow", size:sizes.small, symbol:"circle-open", opacity:1}},
 
-  FEW_HF: {x:[], y:[], mode:"markers", name:"FEW (HF)",
+  FEW_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"FEW (HF)",
         marker:{color:"green", size:sizes.small, symbol:"circle-open", opacity:1}},
 
-  SCT_HF: {x:[], y:[], mode:"markers", name:"SCT (HF)",
+  SCT_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"SCT (HF)",
         marker:{color:"blue", size:sizes.small, symbol:"circle-open", opacity:1}},
 
-  BKN_HF: {x:[], y:[], mode:"markers", name:"BKN (HF)",
+  BKN_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"BKN (HF)",
         marker:{color:"red", size:sizes.small, symbol:"circle-open", opacity:1}},
 
-  OVC_HF: {x:[], y:[], mode:"markers", name:"OVC/VV (HF)",
+  OVC_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"OVC/VV (HF)",
         marker:{color:"black", size:sizes.small, symbol:"circle-open", opacity:1}},
 		
-  VV_HF: {x:[], y:[], mode:"markers", name:"OVC/VV (HF)",
+  VV_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"OVC/VV (HF)",
         marker:{color:"black", size:sizes.small, symbol:"circle-open", opacity:1}},
 		
-  LIFR_HF: {x:[], y:[], mode:"markers", name:"LIFR (HF)",
+  LIFR_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"LIFR (HF)",
         marker:{color:"purple", size:sizes.small, symbol:"square-open", opacity:1}},
 
-  IFR_HF: {x:[], y:[], mode:"markers", name:"IFR (HF)",
+  IFR_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"IFR (HF)",
         marker:{color:"red", size:sizes.small, symbol:"square-open", opacity:1}},
 
-  MVFR_HF: {x:[], y:[], mode:"markers", name:"MVFR (HF)",
+  MVFR_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"MVFR (HF)",
         marker:{color:"blue", size:sizes.small, symbol:"square-open", opacity:1}},
 
-  VFR_HF: {x:[], y:[], mode:"markers", name:"VFR (HF)",
+  VFR_HF: {x:[], y:[], mode:"markers", type:"scattergl", name:"VFR (HF)",
         marker:{color:"green", size:sizes.small, symbol:"square-open", opacity:1}}
 };
 
@@ -359,16 +359,16 @@ data.forEach(m => {
 
 });
 
-let windSpeed_STD = {x:[], y:[], mode:"markers", name:"Wind Speed STD",
+let windSpeed_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Wind Speed STD",
   marker:{size:sizes.big, color:"black", symbol:"circle"},cliponaxis:false};
 
-let windSpeed_HF = {x:[], y:[], mode:"markers", name:"Wind Speed HF",
+let windSpeed_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Wind Speed HF",
   marker:{size:sizes.small, color:"black", symbol:"circle-open"},cliponaxis:false};
 
-let windDir_STD = {x:[], y:[], mode:"markers", name:"Wind Dir STD", yaxis:"y2",
+let windDir_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Wind Dir STD", yaxis:"y2",
   marker:{size:sizes.big, color:"blue", symbol:"circle"},cliponaxis:false};
 
-let windDir_HF = {x:[], y:[], mode:"markers", name:"Wind Dir HF", yaxis:"y2",
+let windDir_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Wind Dir HF", yaxis:"y2",
   marker:{size:sizes.small, color:"blue", symbol:"circle-open"},cliponaxis:false};
 
 data.forEach(m => {
@@ -432,16 +432,16 @@ plotTraces = plotTraces.filter(tr => tr.x.length > 0);
 document.getElementById("titleTemp").innerText =
   `${icao} ${hours} hr Temperature & Dewpoint`;
 
-let Temp_STD = {x:[], y:[], mode:"markers", name:"Temperature STD",
+let Temp_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Temperature STD",
   marker:{size:sizes.big, color:"black", symbol:"circle"},cliponaxis:false};
 
-let Temp_HF = {x:[], y:[], mode:"markers", name:"Temperature HF",
+let Temp_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Temperature HF",
   marker:{size:sizes.small, color:"black", symbol:"circle-open"},cliponaxis:false};
 
-let Dewp_STD = {x:[], y:[], mode:"markers", name:"Dewpoint STD", yaxis:"y2",
+let Dewp_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Dewpoint STD", yaxis:"y2",
   marker:{size:sizes.big, color:"blue", symbol:"circle"},cliponaxis:false};
 
-let Dewp_HF = {x:[], y:[], mode:"markers", name:"Dewpoint HF", yaxis:"y2",
+let Dewp_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Dewpoint HF", yaxis:"y2",
   marker:{size:sizes.small, color:"blue", symbol:"circle-open"},cliponaxis:false};
 
 data.forEach(m => {
@@ -495,12 +495,6 @@ Plotly.newPlot("plotTemp",
   },
   {displaylogo:false}
 );
-
-// convert traces object → array
-let plotTraces = Object.values(traces);
-
-// remove empty traces (clean legend)
-plotTraces = plotTraces.filter(tr => tr.x.length > 0);
 
 // -------- CREATE FULL-RANGE COPY --------
 let plotTracesFull = plotTraces.map(tr => {
