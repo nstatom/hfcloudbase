@@ -169,7 +169,7 @@ document.getElementById("decoded").textContent =
   
   // title
   document.getElementById("titleSynoptic").innerText =
-    `${icao} ${hours} hr 3000 ft Cloud Profile`;
+    `${icao} ${hours} hr Low Cloud Profile (0-3000 ft)`;
 
   // plot
   plotSynoptic(json3.data, icao, sizes, hours);
@@ -485,7 +485,7 @@ Plotly.newPlot("plotTemp",
     },
 
     yaxis2:{
-      title:"Dewpoint (Cloud)",
+      title:"Dewpoint (C)",
       overlaying:"y",
       side:"right",
       autorange:true
@@ -501,6 +501,57 @@ let plotTraces = Object.values(traces);
 
 // remove empty traces (clean legend)
 plotTraces = plotTraces.filter(tr => tr.x.length > 0);
+
+// -------- CREATE FULL-RANGE COPY --------
+let plotTracesFull = plotTraces.map(tr => {
+  // deep-ish copy
+  let newTrace = {
+    ...tr,
+    x: [...tr.x],
+    y: [...tr.y]
+  };
+
+  // shift IFR points lower (they are negative values)
+  newTrace.y = newTrace.y.map(y => (y < 0 ? -1500 : y));
+
+  return newTrace;
+});
+
+Plotly.newPlot("plotSynoptic", plotTraces, {
+
+  margin:{l:50,r:20,t:20,b:40},
+  
+  xaxis:{
+    title:"Local Time"
+  },
+
+  yaxis:{
+    title:"Cloud Base AGL [ft]",
+    range:[-300, 3150]
+  }
+
+}, {displaylogo:false});
+
+// -------- SECOND PLOT (FULL RANGE) --------
+
+document.getElementById("titleSynopticFull").innerText =
+  `${icao} ${hours} hr Full Cloud Profile (0-30000 ft)`;
+
+
+Plotly.newPlot("plotSynopticFull", plotTracesFull, {
+
+  margin:{l:50,r:20,t:20,b:40},
+
+  xaxis:{
+    title:"Local Time"
+  },
+
+  yaxis:{
+    title:"Cloud Base AGL [ft]",
+    range:[-3000, 31500]
+  }
+
+}, {displaylogo:false});
 
 }
 
