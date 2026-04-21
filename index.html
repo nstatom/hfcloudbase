@@ -422,9 +422,6 @@ Plotly.newPlot("plotWind",
   {displaylogo:false}
 );
 
-// enforce minimum 3000 ft
-let yMax = Math.max(maxHeight, 3000);
-
 // convert traces object → array
 let plotTraces = Object.values(traces);
 
@@ -434,52 +431,6 @@ plotTraces = plotTraces.filter(tr => tr.x.length > 0);
 //----------------- Temperatue Plot-----------------
 document.getElementById("titleTemp").innerText =
   `${icao} ${hours} hr Temperature & Dewpoint`;
-
-let maxHeight = -1000;
-
-data.forEach(m => {
-
-  let t = new Date(m.time * 1000);
-  let isHF = (m.source === "HF");
-
-  // --- IFR category ---
-  if(m.ifr){
-    let key = `${m.ifr}_${isHF ? "HF" : "STD"}`;
-    if(traces[key]){
-      traces[key].x.push(t);
-      traces[key].y.push(-150);
-    }
-  }
-
-  // --- SKC ---
-  if(!m.clouds || m.clouds.length === 0){
-    let key = isHF ? "SKC_HF" : "SKC_STD";
-    if(traces[key]){
-      traces[key].x.push(t);
-      traces[key].y.push(0);
-    }
-    return;
-  }
-
-  // --- Cloud layers ---
-  m.clouds.forEach(c => {
-
-    if(!c.base) return;
-
-    let base = c.base;
-    let cover = c.cover;
-    let key = cover + (isHF ? "_HF" : "_STD");
-
-    if(base > maxHeight) maxHeight = base + 1000;
-
-    if(traces[key]){
-      traces[key].x.push(t);
-      traces[key].y.push(base);
-    }
-
-  });
-
-});
 
 let Temp_STD = {x:[], y:[], mode:"markers", name:"Temperature STD",
   marker:{size:sizes.big, color:"black", symbol:"circle"},cliponaxis:false};
@@ -498,18 +449,21 @@ data.forEach(m => {
   const t = new Date(m.time * 1000);
   const isHF = (m.source === "HF");
 
-  if (m.temp !== null && m.temp !== undefined && m.dewpoint !== null && m.dewpoint !== undefined) {
-
+  if (m.temp !== null && m.temp !== undefined) {
     if (isHF) {
       Temp_HF.x.push(t);
       Temp_HF.y.push(m.temp);
-
-      Dewp_HF.x.push(t);
-      Dewp_HF.y.push(m.dewpoint);
     } else {
       Temp_STD.x.push(t);
       Temp_STD.y.push(m.temp);
+    }
+  }
 
+  if (m.dewpoint !== null && m.dewpoint !== undefined) {
+    if (isHF) {
+      Dewp_HF.x.push(t);
+      Dewp_HF.y.push(m.dewpoint);
+    } else {
       Dewp_STD.x.push(t);
       Dewp_STD.y.push(m.dewpoint);
     }
@@ -526,12 +480,14 @@ Plotly.newPlot("plotTemp",
     },
 
     yaxis:{
-      title:"Air Temperature (F)",
+      title:"Air Temperature (C)",
       autorange:true
     },
 
     yaxis2:{
-      title:"Dewpoint (F)",
+      title:"Dewpoint (Cloud)",
+      overlaying:"y",
+      side:"right",
       autorange:true
     },
 
