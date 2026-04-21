@@ -50,7 +50,7 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <b>Cloud Height Plot Information</b>
 
 <p>
-Currently the plots can contain up to 168 hours (1 week) of METAR data from standard ASOS/AWOS stations at a given ICAO airport code. Plotted cloud heights are in reference to the airport ground elevation and rounded to the nearest 100 ft. Add the specific airport elevation listed above to get cloud heights in reference to MSL. Clear sky conditions (yellow circles) are plotted at 0 ft elevation and the flight rules category is plotted at a negative elevation arbitrarily for data tracking convenience (color coded squares). Note that lower level cloudy conditions (especially overcast) can obscure higher elevation clouds from being detected by the airport's ceilometer.
+Currently the plots can contain up to 168 hours (1 week) of METAR data from standard ASOS/AWOS stations at a given ICAO airport code. Plotted cloud heights are in reference to the airport ground elevation and rounded to the nearest 100 ft. Add the specific airport elevation listed above to get cloud heights in reference to MSL. Clear sky conditions (yellow circles) are plotted at 0 ft elevation and the flight rules category is plotted at a negative elevation arbitrarily for quick referencing (color coded squares). Note that lower level cloudy conditions (especially overcast) can obscure higher elevation clouds from being detected by the airport's ceilometer.
 </p>
 <p>
 Hourly cloud data ('STD', larger filled icons) are based on standard airport METAR readings that are fetched using the <a href="https://synopticdata.com/" target="_blank" rel="noopener noreferrer">Synoptic Data</a> API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations. High frequency cloud data ('HF', smaller unfilled icons) are generated from the same METAR stations and fetched using the same API. The resulting HF ceilometer observations may be more prone to overall cloud status mischaracterization in patchy cloud conditions than the hourly METAR data since each HF observation is the result of only a 5 minute collection of vertical point measurements with standard averaging. 
@@ -59,6 +59,18 @@ Hourly cloud data ('STD', larger filled icons) are based on standard airport MET
 <br>
 <h3 id="titleWind"></h3>
 <div id="plotWind"></div>
+
+<br>
+<h3 id="titleTemp"></h3>
+<div id="plotTemp"></div>
+
+<br>
+<br>
+<b>Meteorological Plot Information</b>
+
+<p>
+Wind direction is plotted as 0 by default if the accompanying wind speed is zero.
+</p>
 
 <br>
 <h3>Decoded METAR Stream</h3>
@@ -419,56 +431,120 @@ let plotTraces = Object.values(traces);
 // remove empty traces (clean legend)
 plotTraces = plotTraces.filter(tr => tr.x.length > 0);
 
-// -------- CREATE FULL-RANGE COPY --------
-let plotTracesFull = plotTraces.map(tr => {
-  // deep-ish copy
-  let newTrace = {
-    ...tr,
-    x: [...tr.x],
-    y: [...tr.y]
-  };
+//----------------- Temperatue Plot-----------------
+document.getElementById("titleTemp").innerText =
+  `${icao} ${hours} hr Temperature & Dewpoint`;
 
-  // shift IFR points lower (they are negative values)
-  newTrace.y = newTrace.y.map(y => (y < 0 ? -1500 : y));
+let maxHeight = -1000;
 
-  return newTrace;
+data.forEach(m => {
+
+  let t = new Date(m.time * 1000);
+  let isHF = (m.source === "HF");
+
+  // --- IFR category ---
+  if(m.ifr){
+    let key = `${m.ifr}_${isHF ? "HF" : "STD"}`;
+    if(traces[key]){
+      traces[key].x.push(t);
+      traces[key].y.push(-150);
+    }
+  }
+
+  // --- SKC ---
+  if(!m.clouds || m.clouds.length === 0){
+    let key = isHF ? "SKC_HF" : "SKC_STD";
+    if(traces[key]){
+      traces[key].x.push(t);
+      traces[key].y.push(0);
+    }
+    return;
+  }
+
+  // --- Cloud layers ---
+  m.clouds.forEach(c => {
+
+    if(!c.base) return;
+
+    let base = c.base;
+    let cover = c.cover;
+    let key = cover + (isHF ? "_HF" : "_STD");
+
+    if(base > maxHeight) maxHeight = base + 1000;
+
+    if(traces[key]){
+      traces[key].x.push(t);
+      traces[key].y.push(base);
+    }
+
+  });
+
 });
 
-Plotly.newPlot("plotSynoptic", plotTraces, {
+let Temp_STD = {x:[], y:[], mode:"markers", name:"Temperature STD",
+  marker:{size:sizes.big, color:"black", symbol:"circle"},cliponaxis:false};
 
-  margin:{l:50,r:20,t:20,b:40},
-  
-  xaxis:{
-    title:"Local Time"
-  },
+let Temp_HF = {x:[], y:[], mode:"markers", name:"Temperature HF",
+  marker:{size:sizes.small, color:"black", symbol:"circle-open"},cliponaxis:false};
 
-  yaxis:{
-    title:"Cloud Base AGL [ft]",
-    range:[-300, 3150]
+let Dewp_STD = {x:[], y:[], mode:"markers", name:"Dewpoint STD", yaxis:"y2",
+  marker:{size:sizes.big, color:"blue", symbol:"circle"},cliponaxis:false};
+
+let Dewp_HF = {x:[], y:[], mode:"markers", name:"Dewpoint HF", yaxis:"y2",
+  marker:{size:sizes.small, color:"blue", symbol:"circle-open"},cliponaxis:false};
+
+data.forEach(m => {
+
+  const t = new Date(m.time * 1000);
+  const isHF = (m.source === "HF");
+
+  if (m.temp !== null && m.temp !== undefined && m.dewpoint !== null && m.dewpoint !== undefined) {
+
+    if (isHF) {
+      Temp_HF.x.push(t);
+      Temp_HF.y.push(m.temp);
+
+      Dewp_HF.x.push(t);
+      Dewp_HF.y.push(m.dewpoint);
+    } else {
+      Temp_STD.x.push(t);
+      Temp_STD.y.push(m.temp);
+
+      Dewp_STD.x.push(t);
+      Dewp_STD.y.push(m.dewpoint);
+    }
   }
+});
 
-}, {displaylogo:false});
+Plotly.newPlot("plotTemp",
+  [Temp_STD, Temp_HF, Dewp_STD, Dewp_HF],
+  {
+    margin:{l:50,r:50,t:20,b:40},
 
-// -------- SECOND PLOT (FULL RANGE) --------
+    xaxis:{
+      title:"Time"
+    },
 
-document.getElementById("titleSynopticFull").innerText =
-  `${icao} ${hours} hr 30000 ft Cloud Profile`;
+    yaxis:{
+      title:"Air Temperature (F)",
+      autorange:true
+    },
 
+    yaxis2:{
+      title:"Dewpoint (F)",
+      autorange:true
+    },
 
-Plotly.newPlot("plotSynopticFull", plotTracesFull, {
-
-  margin:{l:50,r:20,t:20,b:40},
-
-  xaxis:{
-    title:"Local Time"
+    legend:{orientation:"h"}
   },
+  {displaylogo:false}
+);
 
-  yaxis:{
-    title:"Cloud Base AGL [ft]",
-    range:[-3000, 31500]
-  }
+// convert traces object → array
+let plotTraces = Object.values(traces);
 
-}, {displaylogo:false});
+// remove empty traces (clean legend)
+plotTraces = plotTraces.filter(tr => tr.x.length > 0);
 
 }
 
