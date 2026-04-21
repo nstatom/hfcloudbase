@@ -493,7 +493,7 @@ const boundsTrace = {
 };
 
 Plotly.newPlot("plotTemp",
-  [boundsTrace, Temp_STD, Temp_HF, Dewp_STD, Dewp_HF],
+  [Temp_STD, Temp_HF, Dewp_STD, Dewp_HF],
   {
     margin:{l:50,r:50,t:20,b:40},
 
@@ -503,7 +503,8 @@ Plotly.newPlot("plotTemp",
 
     yaxis:{
       title:"Temperature & Dewpoint (°F)",
-      autorange: true
+      range: yRange,
+      autorange: false
     },
 
     legend:{orientation:"h"}
