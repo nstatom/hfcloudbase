@@ -173,7 +173,7 @@ document.getElementById("decoded").textContent =
   
   // title
   document.getElementById("titleSynoptic").innerText =
-    `${icao} ${hours} hr Low Cloud Profile (0-3000 ft)`;
+    `${icao} ${hours} hr Low Cloud Profile (0 - 3,000 ft)`;
 
   // plot
   plotSynoptic(json3.data, icao, sizes, hours);
@@ -374,10 +374,10 @@ let pressure_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Pressure 
   marker:{size:sizes.small, color:"black", symbol:"circle-open"}, cliponaxis:false};
 
 let vis_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Visibility STD", yaxis:"y2",
-  marker:{size:sizes.big, color:"green", symbol:"circle"}, cliponaxis:false};
+  marker:{size:sizes.big, color:"blue", symbol:"circle"}, cliponaxis:false};
 
 let vis_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Visibility HF", yaxis:"y2",
-  marker:{size:sizes.small, color:"green", symbol:"circle-open"}, cliponaxis:false};
+  marker:{size:sizes.small, color:"blue", symbol:"circle-open"}, cliponaxis:false};
 
 data.forEach(m => {
 
@@ -426,12 +426,12 @@ Plotly.newPlot("plotPressure",
     margin:{l:50,r:50,t:20,b:40},
 
     xaxis:{
-      title:"Time",
+      title:"Local Time",
       type:"date"
     },
 
     yaxis:{
-      title:"Pressure (inHg)",
+      title:"Sea Level Pressure (kPa) & Visibility (nm)",
       range:[pressureMin, pressureMax],
       dtick: pressureDtick
     },
@@ -490,7 +490,7 @@ Plotly.newPlot("plotWind",
     margin:{l:50,r:50,t:20,b:40},
 
     xaxis:{
-      title:"Time"
+      title:"Local Time"
     },
 
     yaxis:{
@@ -589,7 +589,7 @@ Plotly.newPlot("plotTemp",
     margin:{l:50,r:50,t:20,b:40},
 
     xaxis:{
-      title:"Time"
+      title:"Local Time"
     },
 
     yaxis:{
@@ -636,7 +636,7 @@ Plotly.newPlot("plotSynoptic", plotTraces, {
 // -------- SECOND PLOT (FULL RANGE) --------
 
 document.getElementById("titleSynopticFull").innerText =
-  `${icao} ${hours} hr Full Cloud Profile (0-30000 ft)`;
+  `${icao} ${hours} hr Full Cloud Profile (0 - 30,000 ft)`;
 
 
 Plotly.newPlot("plotSynopticFull", plotTracesFull, {
