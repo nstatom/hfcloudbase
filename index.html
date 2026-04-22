@@ -8,7 +8,7 @@
 
 <style>
 body{font-family:Arial;margin:25px;}
-#plotSynoptic, #plotSynopticFull{height:450px;border:2px solid #444;margin-top:10px;}
+#plotSynoptic, #plotSynopticFull, #plotPressure, #plotWind, #plotTemp{height:450px;border:2px solid #444;margin-top:10px;}
 #plotIFR{height:100px;border:2px solid #444;margin-top:10px;}
 pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 .error{color:red;}
@@ -55,6 +55,10 @@ Currently the plots can contain up to 168 hours (1 week) of METAR data from stan
 <p>
 Hourly cloud data ('STD', larger filled icons) are based on standard airport METAR readings that are fetched using the <a href="https://synopticdata.com/" target="_blank" rel="noopener noreferrer">Synoptic Data</a> API. These observations average the past 30 minutes of airport ceilometer data with double weighting for the last 10 minutes of passing sky condition observations. High frequency cloud data ('HF', smaller unfilled icons) are generated from the same METAR stations and fetched using the same API. The resulting HF ceilometer observations may be more prone to overall cloud status mischaracterization in patchy cloud conditions than the hourly METAR data since each HF observation is the result of only a 5 minute collection of vertical point measurements with standard averaging. 
 </p>
+
+<br>
+<h3 id="titlePressure"></h3>
+<div id="plotPressure"></div>
 
 <br>
 <h3 id="titleWind"></h3>
@@ -358,6 +362,92 @@ data.forEach(m => {
   });
 
 });
+
+//----------------- Pressure + Visibility Plot-----------------
+document.getElementById("titlePressure").innerText =
+  `${icao} ${hours} hr Pressure & Visibility`;
+
+let pressure_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Pressure STD",
+  marker:{size:sizes.big, color:"black", symbol:"circle"}, cliponaxis:false};
+
+let pressure_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Pressure HF",
+  marker:{size:sizes.small, color:"black", symbol:"circle-open"}, cliponaxis:false};
+
+let vis_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Visibility STD", yaxis:"y2",
+  marker:{size:sizes.big, color:"green", symbol:"circle"}, cliponaxis:false};
+
+let vis_HF = {x:[], y:[], mode:"markers", type:"scattergl", name:"Visibility HF", yaxis:"y2",
+  marker:{size:sizes.small, color:"green", symbol:"circle-open"}, cliponaxis:false};
+
+data.forEach(m => {
+
+  const t = new Date(m.time * 1000);
+  const isHF = (m.source === "HF");
+
+  // --- Pressure ---
+  if (m.pressure !== null && m.pressure !== undefined) {
+    if (isHF) {
+      pressure_HF.x.push(t);
+      pressure_HF.y.push(m.pressure);
+    } else {
+      pressure_STD.x.push(t);
+      pressure_STD.y.push(m.pressure);
+    }
+  }
+
+  // --- Visibility ---
+  if (m.visibility !== null && m.visibility !== undefined) {
+    if (isHF) {
+      vis_HF.x.push(t);
+      vis_HF.y.push(m.visibility);
+    } else {
+      vis_STD.x.push(t);
+      vis_STD.y.push(m.visibility);
+    }
+  }
+
+});
+
+// ---- Match gridline counts between axes (same trick as wind) ----
+const pressureMin = Math.min(...pressure_STD.y, ...pressure_HF.y);
+const pressureMax = Math.max(...pressure_STD.y, ...pressure_HF.y);
+
+const visMin = 0;   // visibility naturally bottoms at 0
+const visMax = Math.max(...vis_STD.y, ...vis_HF.y);
+
+const nTicks = 6;
+
+const pressureDtick = (pressureMax - pressureMin) / (nTicks - 1);
+const visDtick = (visMax - visMin) / (nTicks - 1);
+
+Plotly.newPlot("plotPressure",
+  [pressure_STD, pressure_HF, vis_STD, vis_HF],
+  {
+    margin:{l:50,r:50,t:20,b:40},
+
+    xaxis:{
+      title:"Time",
+      type:"date"
+    },
+
+    yaxis:{
+      title:"Pressure (inHg)",
+      range:[pressureMin, pressureMax],
+      dtick: pressureDtick
+    },
+
+    yaxis2:{
+      title:"Visibility (nm)",
+      overlaying:"y",
+      side:"right",
+      range:[visMin, visMax],
+      dtick: visDtick
+    },
+
+    legend:{orientation:"h"}
+  },
+  {displaylogo:false}
+);
 
 let windSpeed_STD = {x:[], y:[], mode:"markers", type:"scattergl", name:"Wind Speed STD",
   marker:{size:sizes.big, color:"black", symbol:"circle"},cliponaxis:false};
