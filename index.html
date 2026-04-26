@@ -346,7 +346,7 @@ data.forEach(m => {
   // --- Cloud layers ---
   m.clouds.forEach(c => {
 
-    if(!c.base) return;
+    if(c.base === null || c.base === undefined) return;
 
     let base = c.base;
     let cover = c.cover;
@@ -391,7 +391,7 @@ data.forEach(m => {
       pressure_HF.y.push(m.pressure);
     } else {
       pressure_STD.x.push(t);
-      pressure_STD.y.push(m.pressure);
+      pressure_STD.y.push(Number(m.pressure));
     }
   }
 
@@ -402,18 +402,21 @@ data.forEach(m => {
       vis_HF.y.push(m.visibility);
     } else {
       vis_STD.x.push(t);
-      vis_STD.y.push(m.visibility);
+      vis_STD.y.push(Number(m.visibility));
     }
   }
 
 });
 
 // ---- Match gridline counts between axes (same trick as wind) ----
-const pressureMin = Math.min(...pressure_STD.y, ...pressure_HF.y);
-const pressureMax = Math.max(...pressure_STD.y, ...pressure_HF.y);
+const allPressure = [...pressure_STD.y, ...pressure_HF.y];
+const allVis = [...vis_STD.y, ...vis_HF.y];
 
-const visMin = 0;   // visibility naturally bottoms at 0
-const visMax = Math.max(...vis_STD.y, ...vis_HF.y);
+const pressureMin = allPressure.length ? Math.min(...allPressure) : 0;
+const pressureMax = allPressure.length ? Math.max(...allPressure) : 1;
+
+const visMin = 0;
+const visMax = allVis.length ? Math.max(...allVis) : 1;
 
 const nTicks = 6;
 
@@ -476,10 +479,10 @@ data.forEach(m => {
       windDir_HF.y.push(m.wind_dir);
     } else {
       windSpeed_STD.x.push(t);
-      windSpeed_STD.y.push(m.wind_speed);
+      windSpeed_STD.y.push(Number(m.wind_speed));
 
       windDir_STD.x.push(t);
-      windDir_STD.y.push(m.wind_dir);
+      windDir_STD.y.push(Number(m.wind_dir));
     }
   }
 });
@@ -490,7 +493,8 @@ Plotly.newPlot("plotWind",
     margin:{l:50,r:50,t:20,b:40},
 
     xaxis:{
-      title:"Local Time"
+      title:"Local Time",
+      type:"date"
     },
 
     yaxis:{
@@ -545,7 +549,7 @@ data.forEach(m => {
       Temp_HF.y.push(m.temp);
     } else {
       Temp_STD.x.push(t);
-      Temp_STD.y.push(m.temp);
+      Temp_STD.y.push(Number(m.temp));
     }
   }
 
@@ -555,7 +559,7 @@ data.forEach(m => {
       Dewp_HF.y.push(m.dewpoint);
     } else {
       Dewp_STD.x.push(t);
-      Dewp_STD.y.push(m.dewpoint);
+      Dewp_STD.y.push(Number(m.dewpoint));
     }
   }
 });
@@ -589,7 +593,8 @@ Plotly.newPlot("plotTemp",
     margin:{l:50,r:50,t:20,b:40},
 
     xaxis:{
-      title:"Local Time"
+      title:"Local Time",
+      type:"date"
     },
 
     yaxis:{
@@ -618,12 +623,18 @@ let plotTracesFull = plotTraces.map(tr => {
   return newTrace;
 });
 
+if(plotTraces.length === 0){
+  document.getElementById("plotSynoptic").innerHTML = "No cloud data available";
+  return;
+}
+
 Plotly.newPlot("plotSynoptic", plotTraces, {
 
   margin:{l:50,r:20,t:20,b:40},
   
   xaxis:{
-    title:"Local Time"
+    title:"Local Time",
+    type:"date"
   },
 
   yaxis:{
@@ -644,7 +655,8 @@ Plotly.newPlot("plotSynopticFull", plotTracesFull, {
   margin:{l:50,r:20,t:20,b:40},
 
   xaxis:{
-    title:"Local Time"
+    title:"Local Time",
+    type:"date"
   },
 
   yaxis:{
