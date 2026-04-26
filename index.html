@@ -127,12 +127,28 @@ const synopticUrl = `${SYNOPTIC_URL}?station=${icao}&hours=${hours}`;
 
 try {
 
-  const r3 = await fetch(synopticUrl);
+const r3 = await fetch(synopticUrl);
 
-  document.getElementById("status3").innerHTML =
-    "Status: " + r3.status;
+document.getElementById("status3").innerHTML =
+  "Status: " + r3.status;
 
-  const json3 = await r3.json();
+// ✅ FIX #1: check response BEFORE parsing JSON
+if (!r3.ok) {
+  document.getElementById("status3").innerHTML +=
+    "<br><span class='error'>HTTP error</span>";
+
+  const text = await r3.text();   // read raw response
+  console.error("Non-200 response:", text);
+
+  return;
+}
+
+const json3 = await r3.json();
+
+// FIX #2
+console.log("RAW json3:", json3);
+console.log("timeseries:", json3?.timeseries);
+console.log("data:", json3?.timeseries?.data);
 
 // --- Airport Info ---
 const ts = json3?.timeseries;
