@@ -16,6 +16,32 @@ body{font-family:Arial;margin:25px;}
 pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 .error{color:red;}
 .warning{color:orange;}
+
+.hover-info {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: 120%;
+  left: 0;
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 1000;
+}
+
+.hover-info:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
 </style>
 
 </head>
