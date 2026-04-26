@@ -6,6 +6,9 @@
 
 <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <style>
 body{font-family:Arial;margin:25px;}
 #plotSynoptic, #plotSynopticFull, #plotPressure, #plotWind, #plotTemp{height:450px;border:2px solid #444;margin-top:10px;}
@@ -44,6 +47,10 @@ pre{background:#eee;padding:10px;height:200px;overflow:auto;}
 <br>
 <h3 id="titleSynopticFull"></h3>
 <div id="plotSynopticFull"></div>
+
+<br>
+<h3>Nearby Stations (50 mi)</h3>
+<div id="map" style="height:400px; border:2px solid #444;"></div>
 
 <br>
 <br>
@@ -166,6 +173,8 @@ const lat = station?.lat;
 const lon = station?.lon;
 const alt = station?.elev;
 
+plotMap(json3.station, json3.nearby);
+
 if(lat !== undefined && lon !== undefined){
   document.getElementById("airportInfo").innerHTML = `
     <b>${icao} Airport Information:</b>
@@ -271,8 +280,43 @@ function formatMetarString(m, icao){
   return `${icao} ${utc} UTC: ${category} (${source}); Clouds: ${cloudStr}; Wind: ${wind}; Viz: ${viz}; Press: ${pressure}; Temp: ${temp}; Dewp: ${dewpoint};`;
 }
 
-// ---------------- PLOT Synoptic Full Range ----------------
+function plotMap(station, nearby){
 
+  if(!station || !nearby) return;
+
+  // remove old map if rerunning
+  if(window.mapInstance){
+    window.mapInstance.remove();
+  }
+
+  // center on main station
+  const map = L.map('map').setView([station.lat, station.lon], 9);
+  window.mapInstance = map;
+
+  // base layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  // main airport marker
+  L.marker([station.lat, station.lon])
+    .addTo(map)
+    .bindPopup(`<b>Main Station</b><br>Lat: ${station.lat}<br>Lon: ${station.lon}`);
+
+  // nearby stations
+  nearby.forEach(s => {
+    L.circleMarker([s.lat, s.lon], {
+      radius: 6,
+      color: "blue",
+      fillOpacity: 0.7
+    })
+    .addTo(map)
+    .bindPopup(`<b>${s.stid}</b><br>Lat: ${s.lat}<br>Lon: ${s.lon}`);
+  });
+
+}
+
+// ---------------- PLOT Synoptic Full Range ----------------
 function plotSynoptic(data, icao, sizes, hours){
 
 let traces = {
